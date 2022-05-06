@@ -1,3 +1,4 @@
+import os
 import argparse
 from .data import load
 
@@ -8,8 +9,10 @@ def main():
     '''
     parser = argparse.ArgumentParser(
         description='Clean ADNI metabolomics datasets')
-    parser.add_argument('directory',
+    parser.add_argument('-d', '--directory',
                         type=str,
+                        nargs=1,
+                        default=os.getcwd(),
                         help='Select the directory where\
                               the ADNI files are located')
     args = parser.parse_args()
