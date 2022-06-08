@@ -1,10 +1,12 @@
 import os
 import glob
+import pandas as pd
 from sys import platform
 from typing import Union
 
 
-def read_files(directory: str) -> dict[str, list[str]]:
+def read_files(directory: str,
+               platform: str) -> dict[str, pd.DataFrame]:
     '''
     Read the files in the given directory and return a list of
     files with the possible parameters to run.
@@ -12,27 +14,80 @@ def read_files(directory: str) -> dict[str, list[str]]:
     Parameters
     ----------
     directory: str
-        Directory where the files are located
+        Directory where the files are located.
+    platform: str
+        Metabolomics platform to process.
 
     Returns
     ----------
-    platform_files: dict[str, list[str]]
-        Types of platforms found and their files associated
+    platform_files: dict[str, pd.DataFrame]
+        Dict of dataframe names and dataframes.
     '''
     os.chdir(directory)
-    files = glob.glob('*')
-    p180_files = []
-    nmr_files = []
+    dir_files = glob.glob('*')
+    platform_files = []
+    if platform == 'p180':
+        platform_files = {'ADNI1-UPLC': '',
+                          'ADNI1-FIA': '',
+                          'ADNI2GO-UPLC': '',
+                          'ADNI2GO-FIA': ''}
+        file_names = ['ADMCDUKEP180UPLC_01_15_16.csv',
+                      'ADMCDUKEP180FIA_01_15_16.csv',
+                      'ADMCDUKEP180UPLCADNI2GO.csv',
+                      'ADMCDUKEP180FIAADNI2GO.csv']
+        na_values = ['< LOD',
+                     'No Interception',
+                     '>Highest CS']
+        index_cols = ['RID']
 
-    for f in files:
-        if 'ADMCDUKEP180' or 'p180 Data.xlsx' or 'LODvalues_ADNI' in f:
-            p180_files.append(f)
-        elif 'ADNINIGHTINGALE2' in f:
-            nmr_files.append(f)
+    elif platform == 'nmr':
+        platform_files = {'NMR': ''}
+        file_names = ['ADNINIGHTINGALE2.csv']
+        na_values = ['TAG']
+        index_cols = ['RID', 'VISCODE2']
 
-    platform_files = {'p180': p180_files,
-                      'nmr': nmr_files}
-    return(platform_files)
+    else:
+        raise Exception('The platform should be p180 or nmr')
+
+    for i, f in enumerate(file_names):
+        if f in dir_files:
+            key = list(platform_files.keys())[i]
+            dat = pd.read_csv(f, na_values=na_values).\
+                set_index(index_cols)
+            platform_files[key] = dat
+
+    return platform_files
+
+
+def _get_metabo_col_names(dat: pd.DataFrame,
+                          cohort: str) -> list[str]:
+    '''
+    Get the metabolite names based on position.
+
+    Parameters
+    ----------
+    dat: pd.DataFrame
+        Dataframe to retrieve column names.
+    cohort: str
+        The cohort of the dataframe (e.g. 'ADNI1-FIA').
+    platform: str
+        Metabolomics platform to process.
+
+    Returns
+    ----------
+    col_names: list[str]
+        List of metabolite names
+    '''
+    last_col = len(dat.columns)
+    if 'ADNI1' in cohort:
+        col_index = list(range(7, last_col-1))
+    elif 'ADNI2GO' in cohort:
+        col_index = list(range(24, last_col-1))
+    elif 'NMR' in cohort:
+        col_index = list(range(25, last_col-1))
+
+    col_names = dat.columns[col_index]
+    return col_names
 
 
 def check_p180_files(platform_files: dict[str, list[str]]) -> \
@@ -71,4 +126,4 @@ def check_p180_files(platform_files: dict[str, list[str]]) -> \
         for i, f in enumerate(p180_needed_files[k]):
             if f in platform_files['p180']:
                 p180_found_files[k][i] = f
-    return(p180_found_files)
+    return p180_found_files
