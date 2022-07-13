@@ -29,14 +29,24 @@ def main():
                         help='Select the cutoff to remove metabolites\
                               based on missing data proportion\
                               Default: 0.2.')
+    parser.add_argument('-c', '--cv',
+                        type=float,
+                        default=0.2,
+                        help='Select the cutoff to remove metabolites\
+                              based on CV values\
+                              Default: 0.2.')
     args = parser.parse_args()
     print(args.platform)
     files = load.read_files(args.directory,
                             args.platform)
-    files_m = qc.remove_missing_metabolites(files)
+    files_m = qc.remove_missing_metabolites(files,
+                                            args.missing)
     files_m_cp = qc.compute_cross_plate_correction(files_m,
                                                    args.platform)
+    files_m_cp_cv = qc.remove_metabolites_cv(files_m,
+                                             args.platform,
+                                             args.cv)
     print('')
     print('=== Saving cleaned files ===')
-    for key in files_m_cp:
+    for key in files_m_cp_cv:
         files_m_cp[key].to_csv(key + '.csv')

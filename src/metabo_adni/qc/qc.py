@@ -3,7 +3,7 @@ from metabo_adni.data import load
 
 
 def remove_missing_metabolites(dat_dict: dict[str, pd.DataFrame],
-                               cutoff: float = 0.2) -> dict[str, pd.DataFrame]:
+                               cutoff: float) -> dict[str, pd.DataFrame]:
     '''
     Remove metabolites fram dataframes due to missing data greater than cutoff.
 
@@ -37,6 +37,54 @@ def remove_missing_metabolites(dat_dict: dict[str, pd.DataFrame],
     return dat_dict
 
 
+def remove_metabolites_cv(dat_dict: dict[str, pd.DataFrame],
+                          platform: str,
+                          cutoff: float) -> dict[str, pd.DataFrame]:
+    '''
+    Remove metabolites with a coefficient of variation (CV) higher than cutoff.
+    The CV is computed taking into account duplicates and triplicates.
+    Returns a cleaned dataframe.
+
+    Parameters
+    ----------
+    dat_dict: dict[str, pd.DataFrame]
+        Dictionary with dataframe name and dataframe to modify.
+    platform: str
+        Metabolomics platform to process. Only done in the p180.
+    cutoff: float
+        CV data removal cutoff.
+
+    Returns
+    ----------
+    dat_dict: dict[str, pd.DataFrame]
+        Dictionary with dataframe name and dataframe with corrected values.
+    '''
+    if platform == 'p180':
+        print('=== Removing metabolites with CV values greater than ' +
+              str(cutoff) + ' ===')
+        for key in dat_dict:
+            metabo_names = load._get_metabo_col_names(dat_dict[key],
+                                                      key)
+            dat = dat_dict[key].loc[dat_dict[key].index < 99999, metabo_names]
+            cv_interplate = []
+            duplicated_ID = dat.index[
+                dat.index.duplicated()].unique()
+            for id in duplicated_ID:
+                duplicated_dat = dat.loc[id, :]
+                cv = duplicated_dat.std() / duplicated_dat.mean()
+                cv_interplate.append(cv)
+            cv_interplate = pd.DataFrame(pd.DataFrame(cv_interplate).mean(),
+                                         columns=['CV'])
+            remove_met_table = cv_interplate[cv_interplate['CV'] > cutoff]
+            _print_metabolites_removed(remove_met_table, key)
+            dat_dict[key].drop(remove_met_table.index,
+                               axis=1,
+                               inplace=True)
+        return dat_dict
+    else:
+        raise Exception('The platform should be p180 only')
+
+
 def compute_cross_plate_correction(dat_dict: dict[str, pd.DataFrame],
                                    platform: str) -> dict[str, pd.DataFrame]:
     '''
@@ -53,7 +101,7 @@ def compute_cross_plate_correction(dat_dict: dict[str, pd.DataFrame],
         Metabolomics platform to process. Only done in the p180.
 
     Returns
-    ---------
+    ----------
     dat_dict: dict[str, pd.DataFrame]
         Dictionary with dataframe name and dataframe with corrected values.
     '''
@@ -75,7 +123,8 @@ def compute_cross_plate_correction(dat_dict: dict[str, pd.DataFrame],
                     metabo_names].mean()
                 correction = q / global_qc_average
                 # Apply the correction
-                correct_rows = (dat['Plate.Bar.Code'] == plate_name) & (dat.index < 99999)
+                correct_rows = (dat['Plate.Bar.Code'] == plate_name) &\
+                    (dat.index < 99999)
                 new_dat = dat.loc[correct_rows, metabo_names] / correction
                 dat_dict[key].loc[correct_rows, metabo_names] = new_dat
         return dat_dict
@@ -131,7 +180,8 @@ def _print_metabolites_removed(metabolite_table: pd.DataFrame,
     None
     '''
     if len(metabolite_table) == 0:
-        print('None of the metabolites will be dropped')
+        print('None of the metabolites will be dropped in the ' +
+              cohort + ' cohort.')
     else:
         print('We will remove the following ' +
               str(len(metabolite_table)) +
