@@ -1,7 +1,6 @@
 import os
 import glob
 import pandas as pd
-from sys import platform
 from typing import Union
 
 
