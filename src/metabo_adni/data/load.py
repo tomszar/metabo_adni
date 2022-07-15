@@ -84,6 +84,8 @@ def _get_metabo_col_names(dat: pd.DataFrame,
         col_index = list(range(24, last_col-1))
     elif 'NMR' in cohort:
         col_index = list(range(25, last_col-1))
+    else:
+        col_index = []
 
     col_names = dat.columns[col_index]
     return col_names

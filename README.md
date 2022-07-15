@@ -34,3 +34,5 @@ And metabo_adni will run with the default parameters.
 - `-d`, `--directory`: define the directory were the files are located. Default, current working directory
 - `-p`, `--platform`: define the platform, either p180 or nmr. Default, p180
 - `-m`, `--missing`: remove metabolites with missing proportions greater than cutoff. Default, 0.2
+- `-c`, `--cv`: remove metabolites with CV values greater than cutoff. Default, 0.2
+- `-i`, `--icc`: remove metabolites with ICC values lower than cutoff. Default, 0.65

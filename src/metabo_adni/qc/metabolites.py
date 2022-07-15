@@ -1,18 +1,17 @@
 import pandas as pd
+import pingouin as pg
 from metabo_adni.data import load
 
 
-def remove_missing_metabolites(dat_dict: dict[str, pd.DataFrame],
-                               cutoff: float) -> dict[str, pd.DataFrame]:
+def remove_missing(dat_dict: dict[str, pd.DataFrame],
+                   cutoff: float) -> dict[str, pd.DataFrame]:
     '''
-    Remove metabolites fram dataframes due to missing data greater than cutoff.
+    Remove metabolites from dataframes due to missing data greater than cutoff.
 
     Parameters
     ----------
     dat_dict: dict[str, pd.DataFrame]
         Dictionary with dataframe name and dataframe to modify.
-    platform: str
-        Metabolomics platform to process.
     cutoff: float
         Missing data removal cutoff.
 
@@ -26,20 +25,21 @@ def remove_missing_metabolites(dat_dict: dict[str, pd.DataFrame],
           str(cutoff) + ' ===')
 
     for key in dat_dict:
-        col_names = load._get_metabo_col_names(dat_dict[key],
-                                               key)
-        dat = dat_dict[key][col_names]
+        metabo_names = load._get_metabo_col_names(dat_dict[key],
+                                                  key)
+        dat = dat_dict[key].loc[dat_dict[key].index < 99999, metabo_names]
         metabolite_table = _generate_missing_table(dat, cutoff)
-        _print_metabolites_removed(metabolite_table, key)
+        _print_removed(metabolite_table, key)
         dat_dict[key].drop(metabolite_table.index,
                            axis=1,
                            inplace=True)
+    print('')
     return dat_dict
 
 
-def remove_metabolites_cv(dat_dict: dict[str, pd.DataFrame],
-                          platform: str,
-                          cutoff: float) -> dict[str, pd.DataFrame]:
+def remove_cv(dat_dict: dict[str, pd.DataFrame],
+              platform: str,
+              cutoff: float) -> dict[str, pd.DataFrame]:
     '''
     Remove metabolites with a coefficient of variation (CV) higher than cutoff.
     The CV is computed taking into account duplicates and triplicates.
@@ -76,17 +76,80 @@ def remove_metabolites_cv(dat_dict: dict[str, pd.DataFrame],
             cv_interplate = pd.DataFrame(pd.DataFrame(cv_interplate).mean(),
                                          columns=['CV'])
             remove_met_table = cv_interplate[cv_interplate['CV'] > cutoff]
-            _print_metabolites_removed(remove_met_table, key)
+            _print_removed(remove_met_table, key)
             dat_dict[key].drop(remove_met_table.index,
                                axis=1,
                                inplace=True)
+        print('')
         return dat_dict
     else:
         raise Exception('The platform should be p180 only')
 
 
-def compute_cross_plate_correction(dat_dict: dict[str, pd.DataFrame],
-                                   platform: str) -> dict[str, pd.DataFrame]:
+def remove_icc(dat_dict: dict[str, pd.DataFrame],
+               platform: str,
+               cutoff: float) -> dict[str, pd.DataFrame]:
+    '''
+    Remove metabolites with an intra class correlation (ICC) lower than cutoff.
+    The ICC is computed taking into account duplicates and triplicates.
+    Returns a cleaned dataframe.
+
+    Parameters
+    ----------
+    dat_dict: dict[str, pd.DataFrame]
+        Dictionary with dataframe name and dataframe to modify.
+    platform: str
+        Metabolomics platform to process. Only done in the p180.
+    cutoff: float
+        ICC data removal cutoff.
+
+    Returns
+    ----------
+    dat_dict: dict[str, pd.DataFrame]
+        Dictionary with dataframe name and dataframe with corrected values.
+    '''
+    if platform == 'p180':
+        print('=== Removing metabolites with ICC values lower than ' +
+              str(cutoff) + ' ===')
+        for key in dat_dict:
+            metabo_names = load._get_metabo_col_names(dat_dict[key],
+                                                      key)
+            dat = dat_dict[key].loc[dat_dict[key].index < 99999, metabo_names]
+            duplicated_ID = dat.index[
+                dat.index.duplicated()].unique()
+            duplicated_dat = dat.loc[duplicated_ID]
+            raters = []
+            for j in duplicated_ID:
+                n_duplicates = len(duplicated_dat.loc[j])
+                for k in range(n_duplicates):
+                    raters.append(k+1)
+            iccs = []
+            for met in duplicated_dat.columns:
+                icc_dat = pd.DataFrame()
+                icc_dat['raters'] = raters
+                icc_dat['value'] = list(duplicated_dat[met])
+                icc_dat['targets'] = list(duplicated_dat.index)
+                icc_results = pg.intraclass_corr(icc_dat,
+                                                 targets='targets',
+                                                 raters='raters',
+                                                 ratings='value',
+                                                 nan_policy='omit')
+                iccs.append(icc_results.iloc[2, 2])
+            icc_values = pd.DataFrame(index=duplicated_dat.columns)
+            icc_values['ICC'] = iccs
+            remove_met_table = icc_values[icc_values['ICC'] < cutoff]
+            _print_removed(remove_met_table, key)
+            dat_dict[key].drop(remove_met_table.index,
+                               axis=1,
+                               inplace=True)
+        print('')
+        return dat_dict
+    else:
+        raise Exception('The platform should be p180 only')
+
+
+def cross_plate_correction(dat_dict: dict[str, pd.DataFrame],
+                           platform: str) -> dict[str, pd.DataFrame]:
     '''
     Computes the cross-plate correction for each metabolite
     by estimating the average metabolite value across sample pools
@@ -127,6 +190,7 @@ def compute_cross_plate_correction(dat_dict: dict[str, pd.DataFrame],
                     (dat.index < 99999)
                 new_dat = dat.loc[correct_rows, metabo_names] / correction
                 dat_dict[key].loc[correct_rows, metabo_names] = new_dat
+        print('')
         return dat_dict
     else:
         raise Exception('The platform should be p180 only')
@@ -161,8 +225,8 @@ def _generate_missing_table(dat: pd.DataFrame,
     return metabolite_table
 
 
-def _print_metabolites_removed(metabolite_table: pd.DataFrame,
-                               cohort: str) -> None:
+def _print_removed(metabolite_table: pd.DataFrame,
+                   cohort: str) -> None:
     '''
     Print the list of metabolites that will be removed, and the value
     associated with the decision (either missing, CV, or ICC).

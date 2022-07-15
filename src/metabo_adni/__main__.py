@@ -1,8 +1,7 @@
 import os
 import argparse
-import pandas as pd
 from .data import load
-from .qc import qc
+from .qc import metabolites
 
 
 def main():
@@ -35,18 +34,27 @@ def main():
                         help='Select the cutoff to remove metabolites\
                               based on CV values\
                               Default: 0.2.')
+    parser.add_argument('-i', '--icc',
+                        type=float,
+                        default=0.65,
+                        help='Select the cutoff to remove metabolites\
+                              based on ICC values\
+                              Default: 0.65.')
     args = parser.parse_args()
     print(args.platform)
     files = load.read_files(args.directory,
                             args.platform)
-    files_m = qc.remove_missing_metabolites(files,
-                                            args.missing)
-    files_m_cp = qc.compute_cross_plate_correction(files_m,
-                                                   args.platform)
-    files_m_cp_cv = qc.remove_metabolites_cv(files_m,
-                                             args.platform,
-                                             args.cv)
+    files_m = metabolites.remove_missing(files,
+                                         args.missing)
+    files_m_cp = metabolites.cross_plate_correction(files_m,
+                                                    args.platform)
+    files_m_cp_cv = metabolites.remove_cv(files_m_cp,
+                                          args.platform,
+                                          args.cv)
+    files_m_cp_cv_icc = metabolites.remove_icc(files_m_cp_cv,
+                                               args.platform,
+                                               args.icc)
     print('')
     print('=== Saving cleaned files ===')
-    for key in files_m_cp_cv:
+    for key in files_m_cp_cv_icc:
         files_m_cp[key].to_csv(key + '.csv')
