@@ -58,6 +58,39 @@ def read_files(directory: str,
     return platform_files
 
 
+def read_fasting_file(filepath: str) -> pd.Series:
+    '''
+    Read fasting file
+
+    Parameters
+    ----------
+    filepath: str
+        Path and name of the file.
+
+    Returns
+    ----------
+    fasting_dat: pd.Series
+        Series with fasting information.
+    '''
+    fasting_dat = pd.DataFrame(pd.read_csv(filepath,
+                                           index_col='RID',
+                                           na_values=-4))
+    # Keep only information from baseline
+    fasting_dat = fasting_dat.loc[fasting_dat.loc[:, 'VISCODE2'] == 'bl', ]
+    fasting_dat = fasting_dat.loc[:, 'BIFAST']
+    # If duplicates, keep the largest observed value
+    duplicated_ID = fasting_dat.index[
+                    fasting_dat.index.duplicated()].unique()
+    for i in duplicated_ID:
+        val = fasting_dat.loc[i].max()
+        fasting_dat.drop(i,
+                         axis=0,
+                         inplace=True)
+        fasting_dat.loc[i] = val
+    fasting_dat = fasting_dat.sort_index()
+    return fasting_dat
+
+
 def _get_metabo_col_names(dat: pd.DataFrame,
                           cohort: str) -> list[str]:
     '''

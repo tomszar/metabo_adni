@@ -31,8 +31,10 @@ And metabo_adni will run with the default parameters.
 
 ## Options
 
-- `-d`, `--directory`: define the directory were the files are located. Default, current working directory
-- `-p`, `--platform`: define the platform, either p180 or nmr. Default, p180
-- `-m`, `--missing`: remove metabolites with missing proportions greater than cutoff. Default, 0.2
-- `-c`, `--cv`: remove metabolites with CV values greater than cutoff. Default, 0.2
-- `-i`, `--icc`: remove metabolites with ICC values lower than cutoff. Default, 0.65
+- `-D`: define the directory were the files are located. Default, current working directory
+- `-P`: define the platform, either p180 or nmr. Default, p180
+- `-F`: define the fasting file. Default, BIOMARK.csv
+- `--mmc`: remove metabolites with missing proportions greater than cutoff. Default, 0.2
+- `--mpc`: remove participants with missing proportions greater than cutoff. Default, 0.2
+- `--cv`: remove metabolites with CV values greater than cutoff. Default, 0.2
+- `--icc`: remove metabolites with ICC values lower than cutoff. Default, 0.65
