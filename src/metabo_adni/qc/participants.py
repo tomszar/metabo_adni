@@ -96,15 +96,66 @@ def remove_non_fasters(dat_dict: dict[str, pd.DataFrame],
     fasting_file: str
         Path of the file containing the fasting information.
         Minimum requiered columns are 'RID', and 'BIFAST'.
+
+    Returns
+    ----------
+    dat_dict: dict[str, pd.DataFrame]
+        Dictionary with dataframe name and dataframe with non-fasting
+        participants removed.
     '''
     print('=== Removing non-fasting participants ===')
     fasting_dat = load.read_fasting_file(fasting_file)
     fasting_participants = fasting_dat[fasting_dat == 1].index
     for key in dat_dict:
         keep_participants = dat_dict[key].index.isin(
-                                    fasting_participants)
+            fasting_participants)
         _print_removed(keep_participants, key)
         dat_dict[key] = dat_dict[key].loc[keep_participants]
+    print('')
+    return dat_dict
+
+
+def remove_bad_qc_tags(dat_dict: dict[str, pd.DataFrame],
+                       platform: str) ->\
+        dict[str, pd.DataFrame]:
+    '''
+    Remove participants with bad QC tags.
+    The QC tags in the nmr platform are in the main file.
+    The QC tags in the p180 platform are in separate excel files,
+    located in the qc_files_dir.
+
+    Parameters
+    ----------
+    dat_dict: dict[str, pd.DataFrame]
+        Dictionary with dataframe name and dataframe to modify.
+    platform: str
+        Metabolomics platform to process.
+    '''
+    print('=== Removing participants with bad QC tags ===')
+    if platform == 'nmr':
+        # Remove participants with at least one observed QC tag flagged.
+        qc_tag_names = load._get_nmr_qc_cols()
+        n_cols = len(qc_tag_names)
+        id_list = dat_dict['NMR'].loc[:, qc_tag_names].iloc[:, :n_cols-1].\
+            sum(axis=1) > 0
+        to_remove = id_list.index[id_list].unique().get_level_values('RID')
+        print('We will remove ' +
+              str(len(to_remove)) +
+              ' participants with bad QC tags in the nmr platform.')
+        dat_dict['NMR'] = dat_dict['NMR'].drop(to_remove)
+    elif platform == 'p180':
+        # Only 'C5.DC..C6.OH.' in ADNI2GO FIA and
+        # 'Taurine' in ADNI1 UPLC have bad QC flags
+        for key in dat_dict:
+            if key == 'ADNI1-UPLC':
+                dat_dict[key].drop('Taurine',
+                                   axis=1,
+                                   inplace=True)
+            elif key == 'ADNI2GO-FIA':
+                dat_dict[key].drop('C5.DC..C6.OH.',
+                                   axis=1,
+                                   inplace=True)
+    print('')
     return dat_dict
 
 
@@ -140,6 +191,6 @@ def _print_removed(participant_table: Union[pd.DataFrame, np.ndarray],
         print('We will remove the following ' +
               str(to_remove) +
               ' participants in the ' +
-              cohort + ' cohort:')
+              cohort + ' cohort.')
         if isinstance(participant_table, pd.DataFrame):
             print(participant_table)

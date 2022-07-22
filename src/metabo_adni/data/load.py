@@ -20,7 +20,7 @@ def read_files(directory: str,
     Returns
     ----------
     platform_files: dict[str, pd.DataFrame]
-        Dict of dataframe names and dataframes.
+        Dictionary of dataframe names and dataframes.
     '''
     os.chdir(directory)
     dir_files = glob.glob('*')
@@ -51,7 +51,7 @@ def read_files(directory: str,
     for i, f in enumerate(file_names):
         if f in dir_files:
             key = list(platform_files.keys())[i]
-            dat = pd.read_csv(f, na_values=na_values).\
+            dat = pd.DataFrame(pd.read_csv(f, na_values=na_values)).\
                 set_index(index_cols)
             platform_files[key] = dat
 
@@ -80,7 +80,7 @@ def read_fasting_file(filepath: str) -> pd.Series:
     fasting_dat = fasting_dat.loc[:, 'BIFAST']
     # If duplicates, keep the largest observed value
     duplicated_ID = fasting_dat.index[
-                    fasting_dat.index.duplicated()].unique()
+        fasting_dat.index.duplicated()].unique()
     for i in duplicated_ID:
         val = fasting_dat.loc[i].max()
         fasting_dat.drop(i,
@@ -89,6 +89,55 @@ def read_fasting_file(filepath: str) -> pd.Series:
         fasting_dat.loc[i] = val
     fasting_dat = fasting_dat.sort_index()
     return fasting_dat
+
+
+def read_lod_files(directory: str) -> dict[str, pd.DataFrame]:
+    '''
+    Read the LOD files of the p180 platform.
+
+    Parameters
+    ----------
+    directory: str
+        Directory of the LOD files
+
+    Returns
+    ----------
+    lod_files: dict[str, pd.DataFrame]
+        Dictionary of LOD dataframe names and LOD dataframes.
+    '''
+    os.chdir(directory)
+    lod_files = {'ADNI1-UPLC': '',
+                 'ADNI1-FIA': '',
+                 'ADNI2GO-UPLC': '',
+                 'ADNI2GO-FIA': ''}
+    filenames = ['P180UPLCLODvalues_ADNI1.csv',
+                 'P180FIALODvalues_ADNI1.csv',
+                 'P180UPLCLODvalues_ADNI2GO.csv',
+                 'P180FIALODvalues_ADNI2GO.csv']
+    for i, key in enumerate(lod_files):
+        dat = pd.DataFrame(pd.read_csv(filenames[i],
+                                       encoding='latin_1'))
+        # Metabolite names in lod don't match those in the data
+        # Replace '-', ':', '(', ')' and ' ' with '.'
+        old_columns = dat.columns
+        new_columns = old_columns.str.replace(pat='-|:|\(|\)| ',
+                                              repl='.',
+                                              regex=True)
+        dat.columns = new_columns
+        if 'UPLC' in key:
+            # Change metabolite name from Met.So to Met.SO
+            dat.rename(columns={'Met.SO': 'Met.So'},
+                       inplace=True)
+        elif key == 'ADNI2GO-FIA':
+            # In lod value ADNI2GO-FIA, the bar code plate needs fixing
+            barcode = dat['Plate.Bar.Code']
+            barcode = barcode.str.split(' ',
+                                        expand=True)[2].\
+                str.replace(pat='/',
+                            repl='-')
+            dat['Plate.Bar.Code'] = barcode
+        lod_files[key] = dat
+    return lod_files
 
 
 def _get_metabo_col_names(dat: pd.DataFrame,
@@ -122,6 +171,38 @@ def _get_metabo_col_names(dat: pd.DataFrame,
 
     col_names = dat.columns[col_index]
     return col_names
+
+
+def _get_nmr_qc_cols() -> list[str]:
+    '''
+    Get the QC column names for the nmr platforms
+
+    Returns
+    ----------
+    qc_tag_names: list[str]
+    '''
+    qc_tag_names = ['EDTA_PLASMA',
+                    'CITRATE_PLASMA',
+                    'LOW_ETHANOL',
+                    'MEDIUM_ETHANOL',
+                    'HIGH_ETHANOL',
+                    'ISOPROPYL_ALCOHOL',
+                    'N_METHYL_2_PYRROLIDONE',
+                    'POLYSACCHARIDES',
+                    'AMINOCAPROIC_ACID',
+                    'LOW_GLUCOSE',
+                    'HIGH_LACTATE',
+                    'HIGH_PYRUVATE',
+                    'LOW_GLUTAMINE_OR_HIGH_GLUTAMATE',
+                    'GLUCONOLACTONE',
+                    'LOW_PROTEIN',
+                    'UNEXPECTED_AMINO_ACID_SIGNALS',
+                    'UNIDENTIFIED_MACROMOLECULES',
+                    'UNIDENTIFIED_SMALL_MOLECULE_A',
+                    'UNIDENTIFIED_SMALL_MOLECULE_B',
+                    'UNIDENTIFIED_SMALL_MOLECULE_C',
+                    'BELOW_LIMIT_OF_QUANTIFICATION']
+    return qc_tag_names
 
 
 def check_p180_files(platform_files: dict[str, list[str]]) -> \

@@ -3,6 +3,7 @@ import argparse
 from .data import load
 from .qc import metabolites
 from .qc import participants
+from .qc import transformations
 
 
 def main():
@@ -60,6 +61,13 @@ def main():
                         help='Select the cutoff to remove metabolites\
                               based on ICC values.\
                               Default: 0.65.')
+    parser.add_argument('--lod',
+                        type=str,
+                        default=None,
+                        metavar='LOD FILES DIRECTORY',
+                        help='Select the directory where\
+                              the LOD p180 files are located.\
+                              Default: current working directory.')
     args = parser.parse_args()
     files = load.read_files(args.D,
                             args.P)
@@ -78,6 +86,11 @@ def main():
     files = participants.consolidate_replicates(files)
     files = participants.remove_non_fasters(files,
                                             args.F)
+    files = participants.remove_bad_qc_tags(files,
+                                            args.P)
+    files = transformations.impute_metabolites(files,
+                                               args.P,
+                                               args.lod)
     print('')
     print('=== Saving cleaned files ===')
     for key in files:
