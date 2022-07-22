@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+import scipy.stats as stats
 from typing import Union
 from metabo_adni.data import load
 
@@ -130,6 +131,12 @@ def remove_bad_qc_tags(dat_dict: dict[str, pd.DataFrame],
         Dictionary with dataframe name and dataframe to modify.
     platform: str
         Metabolomics platform to process.
+
+    Returns
+    ----------
+    dat_dict: dict[str, pd.DataFrame]
+        Dictionary with dataframe name and dataframe with participants removed
+        due to bad QC tags.
     '''
     print('=== Removing participants with bad QC tags ===')
     if platform == 'nmr':
@@ -155,6 +162,56 @@ def remove_bad_qc_tags(dat_dict: dict[str, pd.DataFrame],
                 dat_dict[key].drop('C5.DC..C6.OH.',
                                    axis=1,
                                    inplace=True)
+    print('')
+    return dat_dict
+
+
+def remove_moutliers(dat_dict: dict[str, pd.DataFrame],
+                     platform: str) -> dict[str, pd.DataFrame]:
+    '''
+    Remove multivariate outliers by computing the Mahalanobis distance
+
+    Parameters
+    ----------
+    dat_dict: dict[str, pd.DataFrame]
+        Dictionary with dataframe name and dataframe to modify.
+    platform: str
+        Metabolomics platform to process.
+
+    Returns
+    ----------
+    dat_dict: dict[str, pd.DataFrame]
+        Dictionary with dataframe name and dataframe with multivariate outliers
+        removed.
+    '''
+    print('=== Removing multivariate outliers ===')
+    for key in dat_dict:
+        metabo_names = load._get_metabo_col_names(dat_dict[key],
+                                                  key)
+        if platform == 'p180':
+            indices = dat_dict[key].index < 99999
+        elif platform == 'nmr':
+            indices = np.repeat(True, len(dat_dict[key].index))
+        else:
+            indices = []
+        dat = dat_dict[key].loc[indices, metabo_names]
+        cov_mat = dat.cov()
+        p2 = dat.mean()
+        cov_mat_pm1 = np.linalg.matrix_power(cov_mat, -1)
+        distances = []
+        for i, val in enumerate(dat.to_numpy()):
+            p1 = val
+            distance = (p1-p2).T.dot(cov_mat_pm1).dot(p1-p2)
+            distances.append(distance)
+        distances = np.array(distances)
+        cutoff = stats.chi2.ppf(0.999, dat.shape[1]-1)
+        i_to_remove = dat.loc[distances > cutoff].index
+        print(f'{len(i_to_remove)} participants will be removed in the ' +
+              f'{key} cohort')
+        dat_dict[key].drop(i_to_remove,
+                           axis='index',
+                           inplace=True)
+
     print('')
     return dat_dict
 

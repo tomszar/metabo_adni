@@ -68,6 +68,22 @@ def main():
                         help='Select the directory where\
                               the LOD p180 files are located.\
                               Default: current working directory.')
+    parser.add_argument('--log2',
+                        action='store_true',
+                        help='Apply log2 transformation to metabolite\
+                              concentration values.')
+    parser.add_argument('--zscore',
+                        action='store_true',
+                        help='Apply zscore transformation to metabolite\
+                              concentration values.')
+    parser.add_argument('--winsorize',
+                        action='store_true',
+                        help='Winsorize extreme values, i.e. more than 3 std,\
+                              and replace them with 3 std')
+    parser.add_argument('--remove-moutliers',
+                        action='store_true',
+                        help='Remove multivariate outliers using the\
+                              Mahalanobis distance.')
     args = parser.parse_args()
     files = load.read_files(args.D,
                             args.P)
@@ -88,10 +104,21 @@ def main():
                                             args.F)
     files = participants.remove_bad_qc_tags(files,
                                             args.P)
-    files = transformations.impute_metabolites(files,
-                                               args.P,
-                                               args.lod)
-    print('')
+    files = transformations.imputation(files,
+                                       args.P,
+                                       args.lod)
+    if args.log2:
+        files = transformations.log2(files,
+                                     args.P)
+    if args.zscore:
+        files = transformations.zscore(files,
+                                       args.P)
+    if args.winsorize:
+        files = transformations.winsorize(files,
+                                          args.P)
+    if args.remove_moutliers:
+        files = participants.remove_moutliers(files,
+                                              args.P)
     print('=== Saving cleaned files ===')
     for key in files:
         files[key].to_csv(key + '.csv')

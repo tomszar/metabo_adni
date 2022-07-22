@@ -1,12 +1,13 @@
 import numpy as np
 import pandas as pd
+import scipy.stats as stats
 from typing import Union
 from metabo_adni.data import load
 
 
-def impute_metabolites(dat_dict: dict[str, pd.DataFrame],
-                       platform: str,
-                       lod_directory: Union[str, None] = None) ->\
+def imputation(dat_dict: dict[str, pd.DataFrame],
+               platform: str,
+               lod_directory: Union[str, None] = None) ->\
         dict[str, pd.DataFrame]:
     '''
     Impute metabolite concentration values by half the minimum observed value.
@@ -21,6 +22,11 @@ def impute_metabolites(dat_dict: dict[str, pd.DataFrame],
         Metabolomics platform to process. Only done in the p180.
     lod_directory: Union[str, None]
         Path of the files containing the LOD information for the p180.
+
+    Returns
+    ----------
+    dat_dict: dict[str, pd.DataFrame]
+        Dictionary with dataframe name and dataframe with metabolites imputed.
     '''
     print('=== Imputing metabolites ===')
     total_points_imputed = 0
@@ -65,4 +71,121 @@ def impute_metabolites(dat_dict: dict[str, pd.DataFrame],
             else:
                 half_min = dat.loc[:, j].min() / 2
                 dat_dict[key].loc[indices, j] = half_min
+    print('')
+    return dat_dict
+
+
+def log2(dat_dict: dict[str, pd.DataFrame],
+         platform: str) -> dict[str, pd.DataFrame]:
+    '''
+    Transform metabolite concentration values to log2 values.
+    Add a constant of 1 before log transformation.
+
+    Parameters
+    ----------
+    dat_dict: dict[str, pd.DataFrame]
+        Dictionary with dataframe name and dataframe to modify.
+    platform: str
+        Metabolomics platform to process.
+
+    Returns
+    ----------
+    dat_dict: dict[str, pd.DataFrame]
+        Dictionary with dataframe name and dataframe with metabolites log2
+        transformed.
+    '''
+    print('=== Log2 transformation ===')
+    for key in dat_dict:
+        metabo_names = load._get_metabo_col_names(dat_dict[key],
+                                                  key)
+        if platform == 'p180':
+            indices = dat_dict[key].index < 99999
+        elif platform == 'nmr':
+            indices = np.repeat(True, len(dat_dict[key].index))
+        else:
+            indices = []
+        dat = dat_dict[key].loc[indices, metabo_names]
+        log2_dat = np.log2(dat)
+        dat_dict[key].loc[indices, metabo_names] = log2_dat
+    print('')
+    return dat_dict
+
+
+def zscore(dat_dict: dict[str, pd.DataFrame],
+           platform: str) -> dict[str, pd.DataFrame]:
+    '''
+    Transform metabolite concentration values to zscore values.
+
+    Parameters
+    ----------
+    dat_dict: dict[str, pd.DataFrame]
+        Dictionary with dataframe name and dataframe to modify.
+    platform: str
+        Metabolomics platform to process.
+
+    Returns
+    ----------
+    dat_dict: dict[str, pd.DataFrame]
+        Dictionary with dataframe name and dataframe with metabolites zscore
+        transformed.
+    '''
+    print('=== Zscore transformation ===')
+    for key in dat_dict:
+        metabo_names = load._get_metabo_col_names(dat_dict[key],
+                                                  key)
+        if platform == 'p180':
+            indices = dat_dict[key].index < 99999
+        elif platform == 'nmr':
+            indices = np.repeat(True, len(dat_dict[key].index))
+        else:
+            indices = []
+        dat = dat_dict[key].loc[indices, metabo_names]
+        zscore_dat = dat.apply(stats.zscore,
+                               nan_policy='omit')
+        dat_dict[key].loc[indices, metabo_names] = zscore_dat
+    print('')
+    return dat_dict
+
+
+def winsorize(dat_dict: dict[str, pd.DataFrame],
+              platform: str) -> dict[str, pd.DataFrame]:
+    '''
+    Replace extreme values, 3 std, with cap values.
+
+    Parameters
+    ----------
+    dat_dict: dict[str, pd.DataFrame]
+        Dictionary with dataframe name and dataframe to modify.
+    platform: str
+        Metabolomics platform to process.
+
+    Returns
+    ----------
+    dat_dict: dict[str, pd.DataFrame]
+        Dictionary with dataframe name and dataframe with metabolites values
+        winsorized.
+    '''
+    print('=== Winsorize metabolite values ===')
+    for key in dat_dict:
+        metabo_names = load._get_metabo_col_names(dat_dict[key],
+                                                  key)
+        if platform == 'p180':
+            indices = dat_dict[key].index < 99999
+        elif platform == 'nmr':
+            indices = np.repeat(True, len(dat_dict[key].index))
+        else:
+            indices = []
+        dat = dat_dict[key].loc[indices, metabo_names]
+        three_std = np.std(dat) * 3
+        total_replacements = 0
+        for i, std in enumerate(three_std):
+            col = dat.columns[i]
+            high = dat.loc[:, col] > std
+            low = dat.loc[:, col] < -std
+            dat.loc[high, col] = std
+            dat.loc[low, col] = -std
+            total_replacements += sum(high) + sum(low)
+        print(f'Replaced {total_replacements} values in {key} cohort.')
+        dat_dict[key].loc[indices, metabo_names] = dat
+    print('')
     return dat_dict
