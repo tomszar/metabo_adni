@@ -33,6 +33,13 @@ def main():
                         help='Select the file from which to use the\
                               fasting information to keep only\
                               fasting participants. Default: BIOMARK.csv')
+    parser.add_argument('-L',
+                        type=str,
+                        default=os.getcwd(),
+                        metavar='LOD FILES DIRECTORY',
+                        help='Select the directory where\
+                              the LOD p180 files are located.\
+                              Default: current working directory.')
     parser.add_argument('--mmc',
                         type=float,
                         default=0.2,
@@ -61,13 +68,6 @@ def main():
                         help='Select the cutoff to remove metabolites\
                               based on ICC values.\
                               Default: 0.65.')
-    parser.add_argument('--lod',
-                        type=str,
-                        default=None,
-                        metavar='LOD FILES DIRECTORY',
-                        help='Select the directory where\
-                              the LOD p180 files are located.\
-                              Default: current working directory.')
     parser.add_argument('--log2',
                         action='store_true',
                         help='Apply log2 transformation to metabolite\
@@ -110,7 +110,7 @@ def main():
                                             args.P)
     files = transformations.imputation(files,
                                        args.P,
-                                       args.lod)
+                                       args.L)
     if args.log2:
         files = transformations.log2(files,
                                      args.P)
