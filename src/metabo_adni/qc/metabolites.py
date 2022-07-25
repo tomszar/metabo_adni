@@ -4,6 +4,7 @@ from metabo_adni.data import load
 
 
 def remove_missing(dat_dict: dict[str, pd.DataFrame],
+                   platform: str,
                    cutoff: float) -> dict[str, pd.DataFrame]:
     '''
     Remove metabolites from dataframes due to missing data greater than cutoff.
@@ -12,6 +13,8 @@ def remove_missing(dat_dict: dict[str, pd.DataFrame],
     ----------
     dat_dict: dict[str, pd.DataFrame]
         Dictionary with dataframe name and dataframe to modify.
+    platform: str
+        Metabolomics platform to process.
     cutoff: float
         Missing data removal cutoff.
 
@@ -27,7 +30,8 @@ def remove_missing(dat_dict: dict[str, pd.DataFrame],
     for key in dat_dict:
         metabo_names = load._get_metabo_col_names(dat_dict[key],
                                                   key)
-        dat = dat_dict[key].loc[dat_dict[key].index < 99999, metabo_names]
+        indices = load._get_data_indices(dat_dict[key], platform)
+        dat = dat_dict[key].loc[indices, metabo_names]
         metabolite_table = _generate_missing_table(dat, cutoff)
         _print_removed(metabolite_table, key)
         dat_dict[key].drop(metabolite_table.index,
@@ -244,11 +248,9 @@ def _print_removed(metabolite_table: pd.DataFrame,
     None
     '''
     if len(metabolite_table) == 0:
-        print('None of the metabolites will be dropped in the ' +
-              cohort + ' cohort.')
+        print(f'None of the metabolites will be dropped in the {cohort}' +
+              'cohort.')
     else:
-        print('We will remove the following ' +
-              str(len(metabolite_table)) +
-              ' metabolites in the ' +
-              cohort + ' cohort:')
+        print(f'The following {len(metabolite_table)} metabolites in the ' +
+              f'{cohort} cohort will be removed:')
         print(metabolite_table)

@@ -1,3 +1,4 @@
+import warnings
 import numpy as np
 import pandas as pd
 import scipy.stats as stats
@@ -6,6 +7,7 @@ from metabo_adni.data import load
 
 
 def remove_missing(dat_dict: dict[str, pd.DataFrame],
+                   platform: str,
                    cutoff: float) -> dict[str, pd.DataFrame]:
     '''
     Remove participants from dataframes due to missing data greater than
@@ -15,6 +17,8 @@ def remove_missing(dat_dict: dict[str, pd.DataFrame],
     ----------
     dat_dict: dict[str, pd.DataFrame]
         Dictionary with dataframe name and dataframe to modify.
+    platform: str
+        Metabolomics platform to process.
     cutoff: float
         Missing data removal cutoff.
 
@@ -30,7 +34,8 @@ def remove_missing(dat_dict: dict[str, pd.DataFrame],
     for key in dat_dict:
         metabo_names = load._get_metabo_col_names(dat_dict[key],
                                                   key)
-        dat = dat_dict[key].loc[dat_dict[key].index < 99999, metabo_names]
+        indices = load._get_data_indices(dat_dict[key], platform)
+        dat = dat_dict[key].loc[indices, metabo_names]
         total_cols = dat.shape[1]
         total_participants = pd.DataFrame(dat.isna().sum(axis=1) / total_cols,
                                           columns=['Missing percentage'])
@@ -46,8 +51,8 @@ def remove_missing(dat_dict: dict[str, pd.DataFrame],
     return dat_dict
 
 
-def consolidate_replicates(dat_dict: dict[str, pd.DataFrame]) -> \
-        dict[str, pd.DataFrame]:
+def consolidate_replicates(dat_dict: dict[str, pd.DataFrame],
+                           platform: str) -> dict[str, pd.DataFrame]:
     '''
     Consolidate replicates by estimating the average across replicates.
 
@@ -55,6 +60,8 @@ def consolidate_replicates(dat_dict: dict[str, pd.DataFrame]) -> \
     ----------
     dat_dict: dict[str, pd.DataFrame]
         Dictionary with dataframe name and dataframe to modify.
+    platform: str
+        Metabolomics platform to process.
 
     Returns
     ----------
@@ -63,10 +70,14 @@ def consolidate_replicates(dat_dict: dict[str, pd.DataFrame]) -> \
         consolidated.
     '''
     print('=== Consolidating replicates ===')
+    # Ignore performance warnings from multiindex pandas
+    warnings.simplefilter(action='ignore',
+                          category=pd.errors.PerformanceWarning)
     for key in dat_dict:
         metabo_names = load._get_metabo_col_names(dat_dict[key],
                                                   key)
-        dat = dat_dict[key].loc[dat_dict[key].index < 99999, metabo_names]
+        indices = load._get_data_indices(dat_dict[key], platform)
+        dat = dat_dict[key].loc[indices, metabo_names]
         duplicated_ID = dat.index[
             dat.index.duplicated()].unique()
         for j in duplicated_ID:
@@ -80,6 +91,11 @@ def consolidate_replicates(dat_dict: dict[str, pd.DataFrame]) -> \
                                axis='index',
                                inplace=True)
             dat_dict[key].loc[j] = new_row
+        # The bl column is created in nmr (don't know why)
+        if 'bl' in dat_dict[key].columns:
+            dat_dict[key].drop('bl',
+                               axis='columns',
+                               inplace=True)
         dat_dict[key].sort_index(inplace=True)
     print('')
     return dat_dict
@@ -108,7 +124,8 @@ def remove_non_fasters(dat_dict: dict[str, pd.DataFrame],
     fasting_dat = load.read_fasting_file(fasting_file)
     fasting_participants = fasting_dat[fasting_dat == 1].index
     for key in dat_dict:
-        keep_participants = dat_dict[key].index.isin(
+        keep_participants = dat_dict[key].index.\
+            get_level_values('RID').isin(
             fasting_participants)
         _print_removed(keep_participants, key)
         dat_dict[key] = dat_dict[key].loc[keep_participants]

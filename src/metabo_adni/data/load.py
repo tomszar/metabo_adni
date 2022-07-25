@@ -1,5 +1,6 @@
 import os
 import glob
+import numpy as np
 import pandas as pd
 from typing import Union
 
@@ -26,10 +27,11 @@ def read_files(directory: str,
     dir_files = glob.glob('*')
     platform_files = []
     if platform == 'p180':
-        platform_files = {'ADNI1-UPLC': '',
-                          'ADNI1-FIA': '',
-                          'ADNI2GO-UPLC': '',
-                          'ADNI2GO-FIA': ''}
+        df = pd.DataFrame()
+        platform_files = {'ADNI1-UPLC': df,
+                          'ADNI1-FIA': df,
+                          'ADNI2GO-UPLC': df,
+                          'ADNI2GO-FIA': df}
         file_names = ['ADMCDUKEP180UPLC_01_15_16.csv',
                       'ADMCDUKEP180FIA_01_15_16.csv',
                       'ADMCDUKEP180UPLCADNI2GO.csv',
@@ -51,8 +53,10 @@ def read_files(directory: str,
     for i, f in enumerate(file_names):
         if f in dir_files:
             key = list(platform_files.keys())[i]
-            dat = pd.DataFrame(pd.read_csv(f, na_values=na_values)).\
+            dat = pd.DataFrame(pd.read_csv(f,
+                                           na_values=na_values)).\
                 set_index(index_cols)
+            dat = dat.sort_index()
             platform_files[key] = dat
 
     return platform_files
@@ -84,7 +88,7 @@ def read_fasting_file(filepath: str) -> pd.Series:
     for i in duplicated_ID:
         val = fasting_dat.loc[i].max()
         fasting_dat.drop(i,
-                         axis=0,
+                         axis='index',
                          inplace=True)
         fasting_dat.loc[i] = val
     fasting_dat = fasting_dat.sort_index()
@@ -151,8 +155,6 @@ def _get_metabo_col_names(dat: pd.DataFrame,
         Dataframe to retrieve column names.
     cohort: str
         The cohort of the dataframe (e.g. 'ADNI1-FIA').
-    platform: str
-        Metabolomics platform to process.
 
     Returns
     ----------
@@ -171,6 +173,32 @@ def _get_metabo_col_names(dat: pd.DataFrame,
 
     col_names = dat.columns[col_index]
     return col_names
+
+
+def _get_data_indices(dat: pd.DataFrame,
+                      platform: str) -> np.ndarray:
+    '''
+    Get the corresponding indices depending on the platform.
+
+    Parameters
+    ----------
+    dat: pd.DataFrame
+        Dataframe to retrieve column names.
+    platform: str
+        The platform of the dataframe ('p180' or 'nmr').
+
+    Returns
+    ----------
+    indices: np.ndarray
+        List of indices.
+    '''
+    if platform == 'p180':
+        indices = dat.index < 99999
+    elif platform == 'nmr':
+        indices = np.repeat(True, len(dat.index))
+    else:
+        indices = np.ndarray([])
+    return indices
 
 
 def _get_nmr_qc_cols() -> list[str]:

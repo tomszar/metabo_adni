@@ -35,13 +35,8 @@ def imputation(dat_dict: dict[str, pd.DataFrame],
     for key in dat_dict:
         metabo_names = load._get_metabo_col_names(dat_dict[key],
                                                   key)
-        if platform == 'p180':
-            dat = dat_dict[key].loc[dat_dict[key].index < 99999, metabo_names]
-        elif platform == 'nmr':
-            dat = dat_dict[key].loc[:, metabo_names]
-        else:
-            dat = []
-            raise Exception('No valid metabolomics platform')
+        indices = load._get_data_indices(dat_dict[key], platform)
+        dat = dat_dict[key].loc[indices, metabo_names]
         mets_to_impute = dat.columns[dat.isna().any()]
         data_points_impute = dat.isna().sum().sum()
         total_mets_imputed.extend(mets_to_impute)
@@ -98,12 +93,7 @@ def log2(dat_dict: dict[str, pd.DataFrame],
     for key in dat_dict:
         metabo_names = load._get_metabo_col_names(dat_dict[key],
                                                   key)
-        if platform == 'p180':
-            indices = dat_dict[key].index < 99999
-        elif platform == 'nmr':
-            indices = np.repeat(True, len(dat_dict[key].index))
-        else:
-            indices = []
+        indices = load._get_data_indices(dat_dict[key], platform)
         dat = dat_dict[key].loc[indices, metabo_names]
         log2_dat = np.log2(dat)
         dat_dict[key].loc[indices, metabo_names] = log2_dat
@@ -133,12 +123,7 @@ def zscore(dat_dict: dict[str, pd.DataFrame],
     for key in dat_dict:
         metabo_names = load._get_metabo_col_names(dat_dict[key],
                                                   key)
-        if platform == 'p180':
-            indices = dat_dict[key].index < 99999
-        elif platform == 'nmr':
-            indices = np.repeat(True, len(dat_dict[key].index))
-        else:
-            indices = []
+        indices = load._get_data_indices(dat_dict[key], platform)
         dat = dat_dict[key].loc[indices, metabo_names]
         zscore_dat = dat.apply(stats.zscore,
                                nan_policy='omit')
@@ -169,12 +154,7 @@ def winsorize(dat_dict: dict[str, pd.DataFrame],
     for key in dat_dict:
         metabo_names = load._get_metabo_col_names(dat_dict[key],
                                                   key)
-        if platform == 'p180':
-            indices = dat_dict[key].index < 99999
-        elif platform == 'nmr':
-            indices = np.repeat(True, len(dat_dict[key].index))
-        else:
-            indices = []
+        indices = load._get_data_indices(dat_dict[key], platform)
         dat = dat_dict[key].loc[indices, metabo_names]
         three_std = np.std(dat) * 3
         total_replacements = 0

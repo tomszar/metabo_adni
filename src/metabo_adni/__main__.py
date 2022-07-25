@@ -88,18 +88,22 @@ def main():
     files = load.read_files(args.D,
                             args.P)
     files = metabolites.remove_missing(files,
+                                       args.P,
                                        args.mmc)
-    files = metabolites.cross_plate_correction(files,
-                                               args.P)
-    files = metabolites.remove_cv(files,
-                                  args.P,
-                                  args.cv)
-    files = metabolites.remove_icc(files,
-                                   args.P,
-                                   args.icc)
+    if args.P == 'p180':
+        files = metabolites.cross_plate_correction(files,
+                                                   args.P)
+        files = metabolites.remove_cv(files,
+                                      args.P,
+                                      args.cv)
+        files = metabolites.remove_icc(files,
+                                       args.P,
+                                       args.icc)
     files = participants.remove_missing(files,
+                                        args.P,
                                         args.mpc)
-    files = participants.consolidate_replicates(files)
+    files = participants.consolidate_replicates(files,
+                                                args.P)
     files = participants.remove_non_fasters(files,
                                             args.F)
     files = participants.remove_bad_qc_tags(files,
