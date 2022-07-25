@@ -41,13 +41,8 @@ def imputation(dat_dict: dict[str, pd.DataFrame],
         data_points_impute = dat.isna().sum().sum()
         total_mets_imputed.extend(mets_to_impute)
         total_points_imputed = total_points_imputed + data_points_impute
-        print('We will impute ' +
-              str(len(mets_to_impute)) +
-              ' metabolites and ' +
-              str(data_points_impute) +
-              ' data points in the ' +
-              str(key) +
-              ' cohort.')
+        print(f'{len(mets_to_impute)} metabolites and {data_points_impute} ' +
+              f'data points will be imputed in the {key} cohort.')
         for j in mets_to_impute:
             indices = dat.loc[
                 dat[j].isna()].index

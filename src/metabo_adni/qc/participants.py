@@ -80,6 +80,7 @@ def consolidate_replicates(dat_dict: dict[str, pd.DataFrame],
         dat = dat_dict[key].loc[indices, metabo_names]
         duplicated_ID = dat.index[
             dat.index.duplicated()].unique()
+        print(f'There are {len(duplicated_ID)} duplicated IDs in {key} cohort.')
         for j in duplicated_ID:
             # Averaging metabolites, and keeping first row of the other cols
             consolidated = dat.loc[j].mean()
@@ -262,9 +263,7 @@ def _print_removed(participant_table: Union[pd.DataFrame, np.ndarray],
             to_remove = sum(~participant_table)
         else:
             to_remove = []
-        print('We will remove the following ' +
-              str(to_remove) +
-              ' participants in the ' +
-              cohort + ' cohort.')
+        print(f'{to_remove} participants will be removed in the {cohort} ' +
+              'cohort.')
         if isinstance(participant_table, pd.DataFrame):
             print(participant_table)
