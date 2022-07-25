@@ -26,6 +26,7 @@ def read_files(directory: str,
     os.chdir(directory)
     dir_files = glob.glob('*')
     platform_files = []
+    index_cols = ['RID']
     if platform == 'p180':
         df = pd.DataFrame()
         platform_files = {'ADNI1-UPLC': df,
@@ -39,14 +40,10 @@ def read_files(directory: str,
         na_values = ['< LOD',
                      'No Interception',
                      '>Highest CS']
-        index_cols = ['RID']
-
     elif platform == 'nmr':
         platform_files = {'NMR': ''}
         file_names = ['ADNINIGHTINGALE2.csv']
         na_values = ['TAG']
-        index_cols = ['RID', 'VISCODE2']
-
     else:
         raise Exception('The platform should be p180 or nmr')
 
