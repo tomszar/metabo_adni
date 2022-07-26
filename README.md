@@ -43,4 +43,4 @@ And metabo_adni will run with the default parameters.
 - `--zscore`: apply zscore transformation to metabolite concentration values
 - `--winsorize`: winsorize extreme values (more than 3 std of mean)
 - `--remove-moutliers`: remove multivariate outliers using the Mahalanobis distance
-- `--residualize-meds`: replace metabolite values with residuals from a regression with medication intake
+- `--residualize-meds`: replace metabolite values with residuals from a regression with medication intake. Note that residuals are scaled to unit variance
