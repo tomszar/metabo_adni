@@ -140,6 +140,36 @@ def read_lod_files(directory: str) -> dict[str, pd.DataFrame]:
     return lod_files
 
 
+def read_meds_file() -> pd.DataFrame:
+    '''
+    Reads the medication file.
+
+    Returns
+    ----------
+    meds: pd.DataFrame
+        Medication dataframe.
+    '''
+    file = 'ADMCPATIENTDRUGCLASSES_20170512.csv'
+    file_exists = os.path.exists(file)
+    if file_exists:
+        meds = pd.read_csv(file).\
+            set_index(['RID'])
+        # Keeping only baseline
+        baseline = meds.loc[:, 'VISCODE2'] == 'bl'
+        # Removing extra column and no longer needed columns
+        meds.drop(['NA', 'VISCODE2', 'Phase'],
+                  axis='columns',
+                  inplace=True)
+        meds = meds.loc[baseline, :]
+        # Replacing not NA values
+        meds[meds.notna()] = 1
+        # Replacing NA values
+        meds = meds.replace(np.nan, 0)
+    else:
+        raise Exception('There is no medication file')
+    return meds
+
+
 def _get_metabo_col_names(dat: pd.DataFrame,
                           cohort: str) -> list[str]:
     '''

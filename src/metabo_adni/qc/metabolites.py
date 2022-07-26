@@ -248,7 +248,7 @@ def _print_removed(metabolite_table: pd.DataFrame,
     None
     '''
     if len(metabolite_table) == 0:
-        print(f'None of the metabolites will be dropped in the {cohort}' +
+        print(f'None of the metabolites will be dropped in the {cohort} ' +
               'cohort.')
     else:
         print(f'The following {len(metabolite_table)} metabolites in the ' +

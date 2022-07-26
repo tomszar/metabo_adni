@@ -84,6 +84,12 @@ def main():
                         action='store_true',
                         help='Remove multivariate outliers using the\
                               Mahalanobis distance.')
+    parser.add_argument('--residualize-meds',
+                        action='store_true',
+                        help='Replace metabolite concentration values\
+                              with residuals from a regression on medication\
+                              intake. Medication file needs to exist in the\
+                              current directory.')
     args = parser.parse_args()
     files = load.read_files(args.D,
                             args.P)
@@ -123,6 +129,9 @@ def main():
     if args.remove_moutliers:
         files = participants.remove_moutliers(files,
                                               args.P)
+    if args.residualize_meds:
+        files = transformations.residualize_metabolites(files,
+                                                        args.P)
     print('=== Saving cleaned files ===')
     for key in files:
         files[key].to_csv(key + '.csv')
