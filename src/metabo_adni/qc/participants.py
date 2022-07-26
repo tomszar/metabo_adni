@@ -206,12 +206,7 @@ def remove_moutliers(dat_dict: dict[str, pd.DataFrame],
     for key in dat_dict:
         metabo_names = load._get_metabo_col_names(dat_dict[key],
                                                   key)
-        if platform == 'p180':
-            indices = dat_dict[key].index < 99999
-        elif platform == 'nmr':
-            indices = np.repeat(True, len(dat_dict[key].index))
-        else:
-            indices = []
+        indices = load._get_data_indices(dat_dict[key], platform)
         dat = dat_dict[key].loc[indices, metabo_names]
         cov_mat = dat.cov()
         p2 = dat.mean()
