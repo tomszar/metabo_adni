@@ -72,6 +72,10 @@ def main():
                         action='store_true',
                         help='Apply log2 transformation to metabolite\
                               concentration values.')
+    parser.add_argument('--merge',
+                        action='store_true',
+                        help='Merge data frames across cohorts.\
+                              Remove non-metabolite columns.')
     parser.add_argument('--zscore',
                         action='store_true',
                         help='Apply zscore transformation to metabolite\
@@ -120,6 +124,9 @@ def main():
     if args.log2:
         files = transformations.log2(files,
                                      args.P)
+    if args.merge:
+        files = transformations.merge(files,
+                                      args.P)
     if args.zscore:
         files = transformations.zscore(files,
                                        args.P)

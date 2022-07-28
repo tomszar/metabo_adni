@@ -66,6 +66,51 @@ def imputation(dat_dict: dict[str, pd.DataFrame],
     return dat_dict
 
 
+def merge(dat_dict: dict[str, pd.DataFrame],
+          platform: str) -> dict[str, pd.DataFrame]:
+    '''
+    Merge dataframes across cohorts in the p180 platform.
+    This action will delete all extra columns except for metabolites and
+    index (RID), and all non-participant rows.
+    In the nmr platform only deletes the columns.
+
+    Parameters
+    ----------
+    dat_dict: dict[str, pd.DataFrame]
+        Dictionary with dataframe name and dataframe to modify.
+    platform: str
+        Metabolomics platform to process.
+
+    Returns
+    ----------
+    dat_dict: dict[str, pd.DataFrame]
+        Merged dataframe.
+    '''
+    print('=== Merging dataframes and leaving only metabolite columns and ' +
+          'participants ===')
+    dat_copy = dat_dict.copy()
+    for key in dat_copy:
+        metabo_names = load._get_metabo_col_names(dat_copy[key],
+                                                  key)
+        indices = load._get_data_indices(dat_copy[key], platform)
+        dat = dat_copy[key].loc[indices, metabo_names]
+        dat_copy[key] = dat
+    if platform == 'p180':
+        merge1 = dat_copy['ADNI1-FIA'].merge(dat_copy['ADNI1-UPLC'],
+                                             how='inner',
+                                             on='RID',
+                                             suffixes=('_1FIA', '_1UPLC'))
+        merge2 = dat_copy['ADNI2GO-FIA'].merge(dat_copy['ADNI2GO-UPLC'],
+                                               how='inner',
+                                               on='RID',
+                                               suffixes=('_2FIA', '_2UPLC'))
+        dat = pd.concat([merge1, merge2], join='inner')
+        dat_dict = {'P180': dat}
+    elif platform == 'nmr':
+        dat_dict = dat_copy
+    return dat_dict
+
+
 def log2(dat_dict: dict[str, pd.DataFrame],
          platform: str) -> dict[str, pd.DataFrame]:
     '''
@@ -224,8 +269,8 @@ def _get_residuals(outcomes,
         n_not_significants = sum(results.pvalues > 0.05)
         while n_not_significants > 0:
             drop_med = results.pvalues[results.pvalues > 0.05].\
-                               sort_values(ascending=False).\
-                               index[0]
+                sort_values(ascending=False).\
+                index[0]
             med_names.remove(drop_med)
             if not med_names:
                 print(f'No significant medications in {y}')

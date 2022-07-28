@@ -40,6 +40,7 @@ And metabo_adni will run with the default parameters.
 - `--cv`: remove metabolites with CV values greater than cutoff. Default, 0.2
 - `--icc`: remove metabolites with ICC values lower than cutoff. Default, 0.65
 - `--log2`: apply log2 transformation to metabolite concentration values
+- `--merge`: merge data frames across cohorts
 - `--zscore`: apply zscore transformation to metabolite concentration values
 - `--winsorize`: winsorize extreme values (more than 3 std of mean)
 - `--remove-moutliers`: remove multivariate outliers using the Mahalanobis distance

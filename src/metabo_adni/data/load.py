@@ -53,6 +53,11 @@ def read_files(directory: str,
                                            na_values=na_values)).\
                 set_index(index_cols)
             dat = dat.sort_index()
+            if 'ADNI2GO' in f:
+                dat = _replace_bad_col_names(dat)
+            # Carnosine is misspelled in ADNI2GO UPLC
+            if f == 'ADMCDUKEP180UPLCADNI2GO.csv':
+                dat = dat.rename(columns={'canosine': 'Carnosine'})
             platform_files[key] = dat
 
     return platform_files
@@ -119,11 +124,7 @@ def read_lod_files(directory: str) -> dict[str, pd.DataFrame]:
                                        encoding='latin_1'))
         # Metabolite names in lod don't match those in the data
         # Replace '-', ':', '(', ')' and ' ' with '.'
-        old_columns = dat.columns
-        new_columns = old_columns.str.replace(pat='-|:|\(|\)| ',
-                                              repl='.',
-                                              regex=True)
-        dat.columns = new_columns
+        dat = _replace_bad_col_names(dat)
         if 'UPLC' in key:
             # Change metabolite name from Met.So to Met.SO
             dat.rename(columns={'Met.SO': 'Met.So'},
@@ -187,17 +188,24 @@ def _get_metabo_col_names(dat: pd.DataFrame,
     col_names: list[str]
         List of metabolite names
     '''
-    last_col = len(dat.columns)
-    if 'ADNI1' in cohort:
-        col_index = list(range(7, last_col-1))
-    elif 'ADNI2GO' in cohort:
-        col_index = list(range(24, last_col-1))
+    cols = dat.columns
+    if 'FIA' in cohort:
+        start = list(cols).index('C0')
+        end = list(cols).index('SM.C26.1') + 1
+    elif 'UPLC' in cohort:
+        start = list(cols).index('Ala')
+        end = list(cols).index('SDMA') + 1
     elif 'NMR' in cohort:
-        col_index = list(range(25, last_col-1))
+        start = list(cols).index('TOTAL_C')
+        end = list(cols).index('S_HDL_TG_PCT') + 1
+    elif 'P180' in cohort:
+        start = list(cols).index('C0')
+        end = list(cols).index('SDMA') + 1
     else:
-        col_index = []
+        start = 0
+        end = 0
 
-    col_names = dat.columns[col_index]
+    col_names = cols[start:end]
     return col_names
 
 
@@ -257,3 +265,25 @@ def _get_nmr_qc_cols() -> list[str]:
                     'UNIDENTIFIED_SMALL_MOLECULE_C',
                     'BELOW_LIMIT_OF_QUANTIFICATION']
     return qc_tag_names
+
+
+def _replace_bad_col_names(dat: pd.DataFrame) -> pd.DataFrame:
+    '''
+    Replace columns with non-compatible names.
+
+    Parameters
+    ----------
+    dat: pd.DataFrame
+        Original dataframe with bad named columns.
+
+    Returns
+    ----------
+    dat: pd.DataFrame
+        Dataframe with replaced column names.
+    '''
+    old_columns = dat.columns
+    new_columns = old_columns.str.replace(pat='-|:|\(|\)| ',
+                                          repl='.',
+                                          regex=True)
+    dat.columns = new_columns
+    return(dat)
