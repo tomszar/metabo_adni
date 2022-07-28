@@ -91,7 +91,7 @@ def log2(dat_dict: dict[str, pd.DataFrame],
                                                   key)
         indices = load._get_data_indices(dat_dict[key], platform)
         dat = dat_dict[key].loc[indices, metabo_names]
-        log2_dat = np.log2(dat)
+        log2_dat = np.log2(dat + 1)
         dat_dict[key].loc[indices, metabo_names] = log2_dat
     print('')
     return dat_dict
