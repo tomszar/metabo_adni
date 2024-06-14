@@ -1,3 +1,28 @@
+[tool.poetry]
+name = "metabo_adni"
+version = "0.5.2"
+description = "Metabolomics data processing for the ADNI data sets."
+license = "GNU General Public License v3.0"
+authors = ["Tomas Gonzalez Zarzar <tomasgzarzar@gmail.com>"]
+readme = "README.md"
+repository = "https://github.com/tomszar/metabo_adni"
+keywords = ["metabolomics", "quality control", "adni", "alzheimer's disease"]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+  "Operating System :: OS Independent",
+]
+packages = [{ include = "metabo_adni", from = "src" }]
+
+[tool.poetry.dependencies]
+python = "^3.12"
+pandas = "^2.2"
+pingouin = "0.5.4"
+
+[tool.poetry.scripts]
+clean_files = "metabo_adni.__main__:main"
+
 [build-system]
-requires = ['setuptools']
-build-backend = 'setuptools.build_meta'
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
