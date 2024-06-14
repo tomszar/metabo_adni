@@ -1,5 +1,5 @@
 # Metabo_ADNI
-[![PyPI version](https://badge.fury.io/py/metabo-adni.svg)](https://pypi.org/project/metabo-adni/)
+[![PyPI version](https://badge.fury.io/py/metabo_adni.svg)](https://pypi.org/project/metabo-adni/)
 
 Metabolomics data processing for the ADNI data sets.
 Currently, only supports the Biocrates p180 and Nightingale NMR platforms.
