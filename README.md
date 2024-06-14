@@ -16,7 +16,7 @@ git clone https://github.com/tomszar/adni_metabolomics.git
 
 ```bash
 cd adni_metabolomics
-pip install .
+poetry install
 ```
 
 # Usage
