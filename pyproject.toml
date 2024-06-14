@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "metabo_adni"
-version = "0.5.2"
+version = "0.5.3"
 description = "Metabolomics data processing for the ADNI data sets."
 license = "GNU General Public License v3.0"
 authors = ["Tomas Gonzalez Zarzar <tomasgzarzar@gmail.com>"]
@@ -25,4 +25,3 @@ clean_files = "metabo_adni.__main__:main"
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
-
