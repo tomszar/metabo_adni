@@ -1,0 +1,9 @@
+site_name: ADNI metabolomics QC
+theme:
+  name: material
+  palette:
+    scheme: slate
+  font:
+    text: Inter
+nav:
+  - Home: index.md
