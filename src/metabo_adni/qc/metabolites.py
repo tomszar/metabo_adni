@@ -6,7 +6,7 @@ from metabo_adni.data import load
 def remove_missing(dat_dict: dict[str, pd.DataFrame],
                    platform: str,
                    cutoff: float) -> dict[str, pd.DataFrame]:
-    '''
+    """
     Remove metabolites from dataframes due to missing data greater than cutoff.
 
     Parameters
@@ -23,7 +23,7 @@ def remove_missing(dat_dict: dict[str, pd.DataFrame],
     dat_dict: dict[str, pd.DataFrame]
         Dictionary with dataframe name and dataframe with metabolites
         removed due to missingness.
-    '''
+    """
     print('=== Removing metabolites with missing data greater than ' +
           str(cutoff) + ' ===')
 
@@ -44,7 +44,7 @@ def remove_missing(dat_dict: dict[str, pd.DataFrame],
 def remove_cv(dat_dict: dict[str, pd.DataFrame],
               platform: str,
               cutoff: float) -> dict[str, pd.DataFrame]:
-    '''
+    """
     Remove metabolites with a coefficient of variation (CV) higher than cutoff.
     The CV is computed taking into account duplicates and triplicates.
     Returns a cleaned dataframe.
@@ -62,7 +62,7 @@ def remove_cv(dat_dict: dict[str, pd.DataFrame],
     ----------
     dat_dict: dict[str, pd.DataFrame]
         Dictionary with dataframe name and dataframe with corrected values.
-    '''
+    """
     if platform == 'p180':
         print('=== Removing metabolites with CV values greater than ' +
               str(cutoff) + ' ===')
@@ -93,7 +93,7 @@ def remove_cv(dat_dict: dict[str, pd.DataFrame],
 def remove_icc(dat_dict: dict[str, pd.DataFrame],
                platform: str,
                cutoff: float) -> dict[str, pd.DataFrame]:
-    '''
+    """
     Remove metabolites with an intra class correlation (ICC) lower than cutoff.
     The ICC is computed taking into account duplicates and triplicates.
     Returns a cleaned dataframe.
@@ -111,7 +111,7 @@ def remove_icc(dat_dict: dict[str, pd.DataFrame],
     ----------
     dat_dict: dict[str, pd.DataFrame]
         Dictionary with dataframe name and dataframe with corrected values.
-    '''
+    """
     if platform == 'p180':
         print('=== Removing metabolites with ICC values lower than ' +
               str(cutoff) + ' ===')
@@ -154,7 +154,7 @@ def remove_icc(dat_dict: dict[str, pd.DataFrame],
 
 def cross_plate_correction(dat_dict: dict[str, pd.DataFrame],
                            platform: str) -> dict[str, pd.DataFrame]:
-    '''
+    """
     Computes the cross-plate correction for each metabolite
     by estimating the average metabolite value across sample pools
     and within plates to generate a per plate correction.
@@ -171,7 +171,7 @@ def cross_plate_correction(dat_dict: dict[str, pd.DataFrame],
     ----------
     dat_dict: dict[str, pd.DataFrame]
         Dictionary with dataframe name and dataframe with corrected values.
-    '''
+    """
     if platform == 'p180':
         print('=== Applying a cross-plate correction ===')
         for key in dat_dict:
@@ -202,7 +202,7 @@ def cross_plate_correction(dat_dict: dict[str, pd.DataFrame],
 
 def _generate_missing_table(dat: pd.DataFrame,
                             cutoff: float) -> pd.DataFrame:
-    '''
+    """
     Produce a table with metabolites names and missing proportion less than
     cutoff.
 
@@ -217,7 +217,7 @@ def _generate_missing_table(dat: pd.DataFrame,
     ----------
     metabolite_table: pd.DataFrame
         Table with metabolite names and missing proportion
-    '''
+    """
     total_rows = len(dat)
     total_metabolites = pd.DataFrame(
         dat.isna().sum(axis=0) / total_rows,
@@ -231,7 +231,7 @@ def _generate_missing_table(dat: pd.DataFrame,
 
 def _print_removed(metabolite_table: pd.DataFrame,
                    cohort: str) -> None:
-    '''
+    """
     Print the list of metabolites that will be removed, and the value
     associated with the decision (either missing, CV, or ICC).
 
@@ -246,7 +246,7 @@ def _print_removed(metabolite_table: pd.DataFrame,
     Returns
     ----------
     None
-    '''
+    """
     if len(metabolite_table) == 0:
         print(f'None of the metabolites will be dropped in the {cohort} ' +
               'cohort.')

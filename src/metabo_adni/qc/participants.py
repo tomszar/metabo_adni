@@ -9,7 +9,7 @@ from metabo_adni.data import load
 def remove_missing(dat_dict: dict[str, pd.DataFrame],
                    platform: str,
                    cutoff: float) -> dict[str, pd.DataFrame]:
-    '''
+    """
     Remove participants from dataframes due to missing data greater than
     cutoff.
 
@@ -27,7 +27,7 @@ def remove_missing(dat_dict: dict[str, pd.DataFrame],
     dat_dict: dict[str, pd.DataFrame]
         Dictionary with dataframe name and dataframe with participants
         removed due to missingness.
-    '''
+    """
     print('=== Removing participants with missing data greater than ' +
           str(cutoff) + ' ===')
 
@@ -53,7 +53,7 @@ def remove_missing(dat_dict: dict[str, pd.DataFrame],
 
 def consolidate_replicates(dat_dict: dict[str, pd.DataFrame],
                            platform: str) -> dict[str, pd.DataFrame]:
-    '''
+    """
     Consolidate replicates by estimating the average across replicates.
 
     Parameters
@@ -68,7 +68,7 @@ def consolidate_replicates(dat_dict: dict[str, pd.DataFrame],
     dat_dict: dict[str, pd.DataFrame]
         Dictionary with dataframe name and dataframe with participants
         consolidated.
-    '''
+    """
     print('=== Consolidating replicates ===')
     # Ignore performance warnings from multiindex pandas
     warnings.simplefilter(action='ignore',
@@ -104,7 +104,7 @@ def consolidate_replicates(dat_dict: dict[str, pd.DataFrame],
 
 def remove_non_fasters(dat_dict: dict[str, pd.DataFrame],
                        fasting_file: str) -> dict[str, pd.DataFrame]:
-    '''
+    """
     Remove participants that weren't fasting during data collection.
 
     Parameters
@@ -120,7 +120,7 @@ def remove_non_fasters(dat_dict: dict[str, pd.DataFrame],
     dat_dict: dict[str, pd.DataFrame]
         Dictionary with dataframe name and dataframe with non-fasting
         participants removed.
-    '''
+    """
     print('=== Removing non-fasting participants ===')
     fasting_dat = load.read_fasting_file(fasting_file)
     fasting_participants = fasting_dat[fasting_dat == 1].index
@@ -137,7 +137,7 @@ def remove_non_fasters(dat_dict: dict[str, pd.DataFrame],
 def remove_bad_qc_tags(dat_dict: dict[str, pd.DataFrame],
                        platform: str) ->\
         dict[str, pd.DataFrame]:
-    '''
+    """
     Remove participants with bad QC tags.
     The QC tags in the nmr platform are in the main file.
     The QC tags in the p180 platform are in separate excel files,
@@ -155,7 +155,7 @@ def remove_bad_qc_tags(dat_dict: dict[str, pd.DataFrame],
     dat_dict: dict[str, pd.DataFrame]
         Dictionary with dataframe name and dataframe with participants removed
         due to bad QC tags.
-    '''
+    """
     print('=== Removing participants with bad QC tags ===')
     if platform == 'nmr':
         # Remove participants with at least one observed QC tag flagged.
@@ -186,7 +186,7 @@ def remove_bad_qc_tags(dat_dict: dict[str, pd.DataFrame],
 
 def remove_moutliers(dat_dict: dict[str, pd.DataFrame],
                      platform: str) -> dict[str, pd.DataFrame]:
-    '''
+    """
     Remove multivariate outliers by computing the Mahalanobis distance
 
     Parameters
@@ -201,7 +201,7 @@ def remove_moutliers(dat_dict: dict[str, pd.DataFrame],
     dat_dict: dict[str, pd.DataFrame]
         Dictionary with dataframe name and dataframe with multivariate outliers
         removed.
-    '''
+    """
     print('=== Removing multivariate outliers ===')
     for key in dat_dict:
         metabo_names = load._get_metabo_col_names(dat_dict[key],
@@ -231,7 +231,7 @@ def remove_moutliers(dat_dict: dict[str, pd.DataFrame],
 
 def _print_removed(participant_table: Union[pd.DataFrame, np.ndarray],
                    cohort: str) -> None:
-    '''
+    """
     Print the list of participants that will be removed, and the value
     associated with the decision (missing proportion).
 
@@ -247,7 +247,7 @@ def _print_removed(participant_table: Union[pd.DataFrame, np.ndarray],
     Returns
     ----------
     None
-    '''
+    """
     if len(participant_table) == 0:
         print('None of the participants will be dropped in the ' +
               cohort + ' cohort.')

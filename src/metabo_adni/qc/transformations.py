@@ -10,7 +10,7 @@ def imputation(dat_dict: dict[str, pd.DataFrame],
                platform: str,
                lod_directory: Union[str, None] = None) ->\
         dict[str, pd.DataFrame]:
-    '''
+    """
     Impute metabolite concentration values by half the minimum observed value.
     If the LOD file is passed for the p180 platform, the imputation is
     half of the LOD value.
@@ -28,7 +28,7 @@ def imputation(dat_dict: dict[str, pd.DataFrame],
     ----------
     dat_dict: dict[str, pd.DataFrame]
         Dictionary with dataframe name and dataframe with metabolites imputed.
-    '''
+    """
     print('=== Imputing metabolites ===')
     total_points_imputed = 0
     total_mets_imputed = []
@@ -68,7 +68,7 @@ def imputation(dat_dict: dict[str, pd.DataFrame],
 
 def merge(dat_dict: dict[str, pd.DataFrame],
           platform: str) -> dict[str, pd.DataFrame]:
-    '''
+    """
     Merge dataframes across cohorts in the p180 platform.
     This action will delete all extra columns except for metabolites and
     index (RID), and all non-participant rows.
@@ -85,7 +85,7 @@ def merge(dat_dict: dict[str, pd.DataFrame],
     ----------
     dat_dict: dict[str, pd.DataFrame]
         Merged dataframe.
-    '''
+    """
     print('=== Merging dataframes and leaving only metabolite columns and ' +
           'participants ===')
     dat_copy = dat_dict.copy()
@@ -113,7 +113,7 @@ def merge(dat_dict: dict[str, pd.DataFrame],
 
 def log2(dat_dict: dict[str, pd.DataFrame],
          platform: str) -> dict[str, pd.DataFrame]:
-    '''
+    """
     Transform metabolite concentration values to log2 values.
     Add a constant of 1 before log transformation.
 
@@ -129,7 +129,7 @@ def log2(dat_dict: dict[str, pd.DataFrame],
     dat_dict: dict[str, pd.DataFrame]
         Dictionary with dataframe name and dataframe with metabolites log2
         transformed.
-    '''
+    """
     print('=== Log2 transformation ===')
     for key in dat_dict:
         metabo_names = load._get_metabo_col_names(dat_dict[key],
@@ -144,7 +144,7 @@ def log2(dat_dict: dict[str, pd.DataFrame],
 
 def zscore(dat_dict: dict[str, pd.DataFrame],
            platform: str) -> dict[str, pd.DataFrame]:
-    '''
+    """
     Transform metabolite concentration values to zscore values.
 
     Parameters
@@ -159,7 +159,7 @@ def zscore(dat_dict: dict[str, pd.DataFrame],
     dat_dict: dict[str, pd.DataFrame]
         Dictionary with dataframe name and dataframe with metabolites zscore
         transformed.
-    '''
+    """
     print('=== Zscore transformation ===')
     for key in dat_dict:
         metabo_names = load._get_metabo_col_names(dat_dict[key],
@@ -175,7 +175,7 @@ def zscore(dat_dict: dict[str, pd.DataFrame],
 
 def winsorize(dat_dict: dict[str, pd.DataFrame],
               platform: str) -> dict[str, pd.DataFrame]:
-    '''
+    """
     Replace extreme values, 3 std, with cap values.
 
     Parameters
@@ -190,7 +190,7 @@ def winsorize(dat_dict: dict[str, pd.DataFrame],
     dat_dict: dict[str, pd.DataFrame]
         Dictionary with dataframe name and dataframe with metabolites values
         winsorized.
-    '''
+    """
     print('=== Winsorize metabolite values ===')
     for key in dat_dict:
         metabo_names = load._get_metabo_col_names(dat_dict[key],
@@ -214,7 +214,7 @@ def winsorize(dat_dict: dict[str, pd.DataFrame],
 
 def residualize_metabolites(dat_dict: dict[str, pd.DataFrame],
                             platform: str) -> dict[str, pd.DataFrame]:
-    '''
+    """
     Replace metabolite concentration values for the residuals on medication
     intake
 
@@ -224,7 +224,7 @@ def residualize_metabolites(dat_dict: dict[str, pd.DataFrame],
         Dictionary with dataframe name and dataframe to modify.
     platform: str
         Metabolomics platform to process.
-    '''
+    """
     print('=== Replacing metabolite concentration values for residuals from ' +
           'medications ===')
     meds = load.read_meds_file()
@@ -240,7 +240,7 @@ def residualize_metabolites(dat_dict: dict[str, pd.DataFrame],
 
 def _get_residuals(outcomes,
                    predictors):
-    '''
+    """
     Get residuals for each column in the outcome dataframe.
     Both outcomes and predictors need an 'RID' column as index.
 
@@ -250,7 +250,7 @@ def _get_residuals(outcomes,
         dataframe with the outcome variables
     predictors: pd.DataFrame
         dataframe with the predictor variables
-    '''
+    """
     new_dat = pd.merge(outcomes,
                        predictors,
                        left_on='RID',

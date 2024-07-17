@@ -4,22 +4,15 @@
 Metabolomics data processing for the ADNI data sets.
 Currently, only supports the Biocrates p180 and Nightingale NMR platforms.
 
-# Installation
+## Installation
 
-- Clone the repo
-
-```bash
-git clone https://github.com/tomszar/adni_metabolomics.git
-```
-
-- Install metabo_adni
+metabo_adni is distributed as a python package, so install it by running:
 
 ```bash
-cd adni_metabolomics
-poetry install
+pip install metabo_adni
 ```
 
-# Usage
+## Usage
 
 In the folder with the required datasets, simply run:
 
@@ -30,7 +23,7 @@ clean_files
 And metabo_adni will run with the default parameters.
 **Note:** do not change the original name of the files.
 
-## Options
+### Options
 
 - `-D`: define the directory were the files are located. Default, current working directory
 - `-P`: define the platform, either p180 or nmr. Default, p180

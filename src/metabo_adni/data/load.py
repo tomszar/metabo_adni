@@ -6,7 +6,7 @@ import pandas as pd
 
 def read_files(directory: str,
                platform: str) -> dict[str, pd.DataFrame]:
-    '''
+    """
     Read the files in the given directory and return a list of
     files with the possible parameters to run.
 
@@ -21,7 +21,7 @@ def read_files(directory: str,
     ----------
     platform_files: dict[str, pd.DataFrame]
         Dictionary of dataframe names and dataframes.
-    '''
+    """
     os.chdir(directory)
     dir_files = glob.glob('*')
     platform_files = []
@@ -64,7 +64,7 @@ def read_files(directory: str,
 
 
 def read_fasting_file(filepath: str) -> pd.Series:
-    '''
+    """
     Read fasting file
 
     Parameters
@@ -76,7 +76,7 @@ def read_fasting_file(filepath: str) -> pd.Series:
     ----------
     fasting_dat: pd.Series
         Series with fasting information.
-    '''
+    """
     fasting_dat = pd.DataFrame(pd.read_csv(filepath,
                                            index_col='RID',
                                            na_values=-4))
@@ -97,7 +97,7 @@ def read_fasting_file(filepath: str) -> pd.Series:
 
 
 def read_lod_files(directory: str) -> dict[str, pd.DataFrame]:
-    '''
+    """
     Read the LOD files of the p180 platform.
 
     Parameters
@@ -109,7 +109,7 @@ def read_lod_files(directory: str) -> dict[str, pd.DataFrame]:
     ----------
     lod_files: dict[str, pd.DataFrame]
         Dictionary of LOD dataframe names and LOD dataframes.
-    '''
+    """
     os.chdir(directory)
     lod_files = {'ADNI1-UPLC': '',
                  'ADNI1-FIA': '',
@@ -142,14 +142,14 @@ def read_lod_files(directory: str) -> dict[str, pd.DataFrame]:
 
 
 def read_meds_file() -> pd.DataFrame:
-    '''
+    """
     Reads the medication file.
 
     Returns
     ----------
     meds: pd.DataFrame
         Medication dataframe.
-    '''
+    """
     file = 'ADMCPATIENTDRUGCLASSES_20170512.csv'
     file_exists = os.path.exists(file)
     if file_exists:
@@ -173,7 +173,7 @@ def read_meds_file() -> pd.DataFrame:
 
 def _get_metabo_col_names(dat: pd.DataFrame,
                           cohort: str) -> list[str]:
-    '''
+    """
     Get the metabolite names based on position.
 
     Parameters
@@ -187,7 +187,7 @@ def _get_metabo_col_names(dat: pd.DataFrame,
     ----------
     col_names: list[str]
         List of metabolite names
-    '''
+    """
     cols = dat.columns
     if 'FIA' in cohort:
         start = list(cols).index('C0')
@@ -211,7 +211,7 @@ def _get_metabo_col_names(dat: pd.DataFrame,
 
 def _get_data_indices(dat: pd.DataFrame,
                       platform: str) -> np.ndarray:
-    '''
+    """
     Get the corresponding indices depending on the platform.
 
     Parameters
@@ -225,7 +225,7 @@ def _get_data_indices(dat: pd.DataFrame,
     ----------
     indices: np.ndarray
         List of indices.
-    '''
+    """
     if platform == 'p180':
         indices = dat.index < 99999
     elif platform == 'nmr':
@@ -236,13 +236,13 @@ def _get_data_indices(dat: pd.DataFrame,
 
 
 def _get_nmr_qc_cols() -> list[str]:
-    '''
+    """
     Get the QC column names for the nmr platforms
 
     Returns
     ----------
     qc_tag_names: list[str]
-    '''
+    """
     qc_tag_names = ['EDTA_PLASMA',
                     'CITRATE_PLASMA',
                     'LOW_ETHANOL',
@@ -268,7 +268,7 @@ def _get_nmr_qc_cols() -> list[str]:
 
 
 def _replace_bad_col_names(dat: pd.DataFrame) -> pd.DataFrame:
-    '''
+    """
     Replace columns with non-compatible names.
 
     Parameters
@@ -280,7 +280,7 @@ def _replace_bad_col_names(dat: pd.DataFrame) -> pd.DataFrame:
     ----------
     dat: pd.DataFrame
         Dataframe with replaced column names.
-    '''
+    """
     old_columns = dat.columns
     new_columns = old_columns.str.replace(pat='-|:|\(|\)| ',
                                           repl='.',

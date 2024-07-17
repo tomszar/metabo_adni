@@ -7,9 +7,9 @@ from .qc import transformations
 
 
 def main():
-    '''
+    """
     The main routine
-    '''
+    """
     parser = argparse.ArgumentParser(
         description='Clean ADNI metabolomics datasets')
     parser.add_argument('-D',
