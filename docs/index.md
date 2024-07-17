@@ -55,6 +55,7 @@ For the Biocrates p180 platform, several files need to be downloaded that contai
 #### Data
 
 Four datasets contain the proper data, divided by method (FIA, UPLC) and cohort (ADNI1, ADNI2GO):
+
 - `ADMCDUKEP180FIA_01_15_16.csv` obtained from `ADMC Duke Biocrates P180 Kit Flow injection analysis [ADNI1]` item
 - `ADMCDUKEP180FIAADNI2GO.csv` obtained from `ADMC Duke Biocrates p180 Kit Flow injection analysis [ADNIGO,2]` item
 - `ADMCDUKEP180UPLC_01_15_16.csv` obtained from `ADMC Duke Biocrates P180 Kit Ultra Performance Liquid Chromatography [ADNI1]` item
