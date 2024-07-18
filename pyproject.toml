@@ -25,3 +25,8 @@ clean_files = "metabo_adni.__main__:main"
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.pyright]
+include = ["src"]
+venv = "metabo_adni_env"
+venvPath = "miniforge3/envs/"
