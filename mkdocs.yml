@@ -7,3 +7,4 @@ theme:
     text: Inter
 nav:
   - Home: index.md
+
