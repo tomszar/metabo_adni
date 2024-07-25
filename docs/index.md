@@ -63,8 +63,8 @@ Four datasets contain the proper data, divided by method (FIA, UPLC) and cohort 
 
 #### LOD
 
-LOD values for the ADNI2GO can be found in the supplementary material `ADMC Duke p180 Supplementary Files [ADNIGO,2]`.
-LOD values for the ADNI1 cohort coming soon.
+LOD values for the ADNI2GO can be found in the supplementary material `ADMC Duke p180 Supplementary Files [ADNIGO,2]` item.
+LOD values for the ADNI1 can be found in the supplementary material `ADMC Supplemental Materials` item.
 
 ### Fasting
 
