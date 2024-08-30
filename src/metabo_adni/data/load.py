@@ -1,5 +1,6 @@
-import os
 import glob
+import os
+
 import numpy as np
 import pandas as pd
 
@@ -50,9 +51,10 @@ def read_files(directory: str, platform: str) -> dict[str, pd.DataFrame]:
     for i, f in enumerate(file_names):
         if f in dir_files:
             key = list(platform_files.keys())[i]
-            dat = pd.DataFrame(pd.read_csv(f, na_values=na_values)).set_index(
-                index_cols
-            )
+            dat = pd.read_csv(
+                f,
+                na_values=na_values,
+            ).set_index(index_cols)
             dat = dat.sort_index()
             if "ADNI2GO" in f:
                 dat = _replace_bad_col_names(dat)
@@ -114,26 +116,46 @@ def read_lod_files(directory: str) -> dict[str, pd.DataFrame]:
         "ADNI2GO-FIA": "",
     }
     filenames = [
-        "P180UPLCLODvalues_ADNI1.csv",
-        "P180FIALODvalues_ADNI1.csv",
-        "P180UPLCLODvalues_ADNI2GO.csv",
-        "P180FIALODvalues_ADNI2GO.csv",
+        "4097_UPLC_p180_Data.xlsx",
+        "4097_FIA_p180_Data.xlsx",
+        "4610 UPLC p180 Data.xlsx",
+        "4610 FIA p180 Data.xlsx",
     ]
     for i, key in enumerate(lod_files):
-        dat = pd.DataFrame(pd.read_csv(filenames[i], encoding="latin_1"))
+        print(i, key)
+        if key == "ADNI2GO-UPLC":
+            dat = pd.read_excel(
+                io=filenames[i],
+                sheet_name=0,
+                header=0,
+                index_col=10,
+                skiprows=[0, 2],
+                nrows=1,
+            ).iloc[:, 10:]
+        else:
+            dat = pd.read_excel(
+                io=filenames[i],
+                sheet_name=0,
+                header=0,
+                index_col=10,
+                skiprows=[0, 2],
+                nrows=11,
+            ).iloc[:, 10:]
         # Metabolite names in lod don't match those in the data
         # Replace '-', ':', '(', ')' and ' ' with '.'
         dat = _replace_bad_col_names(dat)
         if "UPLC" in key:
             # Change metabolite name from Met.So to Met.SO
             dat.rename(columns={"Met.SO": "Met.So"}, inplace=True)
-        elif key == "ADNI2GO-FIA":
-            # In lod value ADNI2GO-FIA, the bar code plate needs fixing
-            barcode = dat["Plate.Bar.Code"]
-            barcode = barcode.str.split(" ", expand=True)[2].str.replace(
-                pat="/", repl="-"
-            )
+        # In LOD files, the bar code plate needs fixing,
+        # except ADNI2GO-UPLC where it's only one
+        if "ADNI2GO-UPLC" != key:
+            barcode = dat.index
+            barcode = [
+                l.replace("/", "-") for l in [x[2] for x in barcode.str.split(" ")]
+            ]
             dat["Plate.Bar.Code"] = barcode
+            dat = dat.reset_index(drop=True)
         lod_files[key] = dat
     return lod_files
 

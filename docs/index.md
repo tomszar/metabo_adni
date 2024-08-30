@@ -59,7 +59,7 @@ Four datasets contain the proper data, divided by method (FIA, UPLC) and cohort 
 - `ADMCDUKEP180FIA_01_15_16.csv` obtained from `ADMC Duke Biocrates P180 Kit Flow injection analysis [ADNI1]` item
 - `ADMCDUKEP180FIAADNI2GO.csv` obtained from `ADMC Duke Biocrates p180 Kit Flow injection analysis [ADNIGO,2]` item
 - `ADMCDUKEP180UPLC_01_15_16.csv` obtained from `ADMC Duke Biocrates P180 Kit Ultra Performance Liquid Chromatography [ADNI1]` item
-- `ADMCDUKEP180UPLCADNI2GO.csv` obtained from `ADMC Duke p180 Ultra Performance Liquid Chromatography [ADNIGO,2]` item
+- `ADMCDUKEP180UPLCADNI2GO.csv` obtained from `ADMC Duke p180 Ultra Performance Liquid Chromatography [ADNIGO,2]` item. **Note**: make sure to add a single quote (") at the end of this file, if not, pandas will not read correctly the file.
 
 #### LOD
 

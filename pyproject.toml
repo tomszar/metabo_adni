@@ -18,6 +18,7 @@ packages = [{ include = "metabo_adni", from = "src" }]
 python = "^3.12"
 pandas = "^2.2"
 pingouin = "0.5.4"
+openpyxl = "^3.1"
 
 [tool.poetry.scripts]
 clean_files = "metabo_adni.__main__:main"
@@ -29,4 +30,4 @@ build-backend = "poetry.core.masonry.api"
 [tool.pyright]
 include = ["src"]
 venv = "metabo_adni_env"
-venvPath = "miniforge3/envs/"
+venvPath = "/home/tomas/miniforge3/envs/"

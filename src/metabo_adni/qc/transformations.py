@@ -35,11 +35,13 @@ def imputation(
     print("=== Imputing metabolites ===")
     total_points_imputed = 0
     total_mets_imputed = []
+    if lod_directory is not None:
+        lod_files = load.read_lod_files(lod_directory)
 
     for key in dat_dict:
         metabo_names = load._get_metabo_col_names(dat_dict[key], key)
         indices = load._get_data_indices(dat_dict[key], platform)
-        dat = dat_dict[key].loc[indices, metabo_names]
+        dat = dat_dict[key].loc[indices, list(metabo_names) + ["Plate.Bar.Code"]]
         mets_to_impute = dat.columns[dat.isna().any()]
         data_points_impute = dat.isna().sum().sum()
         total_mets_imputed.extend(mets_to_impute)
@@ -51,16 +53,15 @@ def imputation(
         for j in mets_to_impute:
             indices = dat.loc[dat[j].isna()].index
             if platform == "p180" and lod_directory is not None:
-                lod_files = load.read_lod_files(lod_directory)
-                dat = dat_dict[key].loc[
-                    dat_dict[key].index < 99999, list(metabo_names) + ["Plate.Bar.Code"]
-                ]
-                barcode = pd.Series(dat.loc[indices, "Plate.Bar.Code"])
-                vals = []
-                for bar in barcode:
-                    met_lod = lod_files[key].loc[:, "Plate.Bar.Code"] == bar
-                    vals.append(lod_files[key].loc[met_lod, j])
-                dat_dict[key].loc[indices, j] = np.mean(vals) * 0.5
+                if key == "ADNI2GO-UPLC":
+                    dat_dict[key].loc[indices, j] = lod_files[key].loc[:, j]
+                else:
+                    barcode = pd.Series(dat.loc[indices, "Plate.Bar.Code"])
+                    for bar in barcode:
+                        met_lod = lod_files[key].loc[:, "Plate.Bar.Code"] == bar
+                        dat_dict[key].loc[indices, j] = (
+                            lod_files[key].loc[met_lod, j] / 2
+                        )
             else:
                 half_min = dat.loc[:, j].min() / 2
                 dat_dict[key].loc[indices, j] = half_min
