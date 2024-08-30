@@ -1,8 +1,10 @@
+from typing import Union
+
 import numpy as np
 import pandas as pd
 import scipy.stats as stats
 import statsmodels.api as sm
-from typing import Union
+
 from metabo_adni.data import load
 
 
@@ -66,7 +68,10 @@ def imputation(
     return dat_dict
 
 
-def merge(dat_dict: dict[str, pd.DataFrame], platform: str) -> dict[str, pd.DataFrame]:
+def merge(
+    dat_dict: dict[str, pd.DataFrame],
+    platform: str,
+) -> dict[str, pd.DataFrame]:
     """
     Merge dataframes across cohorts in the p180 platform.
     This action will delete all extra columns except for metabolites and
@@ -112,7 +117,10 @@ def merge(dat_dict: dict[str, pd.DataFrame], platform: str) -> dict[str, pd.Data
     return dat_dict
 
 
-def log2(dat_dict: dict[str, pd.DataFrame], platform: str) -> dict[str, pd.DataFrame]:
+def log2(
+    dat_dict: dict[str, pd.DataFrame],
+    platform: str,
+) -> dict[str, pd.DataFrame]:
     """
     Transform metabolite concentration values to log2 values.
     Add a constant of 1 before log transformation.
@@ -141,7 +149,10 @@ def log2(dat_dict: dict[str, pd.DataFrame], platform: str) -> dict[str, pd.DataF
     return dat_dict
 
 
-def zscore(dat_dict: dict[str, pd.DataFrame], platform: str) -> dict[str, pd.DataFrame]:
+def zscore(
+    dat_dict: dict[str, pd.DataFrame],
+    platform: str,
+) -> dict[str, pd.DataFrame]:
     """
     Transform metabolite concentration values to zscore values.
 
@@ -170,7 +181,8 @@ def zscore(dat_dict: dict[str, pd.DataFrame], platform: str) -> dict[str, pd.Dat
 
 
 def winsorize(
-    dat_dict: dict[str, pd.DataFrame], platform: str
+    dat_dict: dict[str, pd.DataFrame],
+    platform: str,
 ) -> dict[str, pd.DataFrame]:
     """
     Replace extreme values, 3 std, with cap values.
@@ -209,7 +221,8 @@ def winsorize(
 
 
 def residualize_metabolites(
-    dat_dict: dict[str, pd.DataFrame], platform: str
+    dat_dict: dict[str, pd.DataFrame],
+    platform: str,
 ) -> dict[str, pd.DataFrame]:
     """
     Replace metabolite concentration values for the residuals on medication
@@ -236,7 +249,10 @@ def residualize_metabolites(
     return dat_dict
 
 
-def _get_residuals(outcomes, predictors):
+def _get_residuals(
+    outcomes: pd.DataFrame,
+    predictors: pd.DataFrame,
+) -> pd.DataFrame:
     """
     Get residuals for each column in the outcome dataframe.
     Both outcomes and predictors need an 'RID' column as index.
