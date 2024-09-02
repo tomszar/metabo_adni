@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "metabo_adni"
-version = "0.5.3"
+version = "0.5.6"
 description = "Metabolomics data processing for the ADNI data sets."
 license = "GNU General Public License v3.0"
 authors = ["Tomas Gonzalez Zarzar <tomasgzarzar@gmail.com>"]
