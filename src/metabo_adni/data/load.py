@@ -61,6 +61,9 @@ def read_files(directory: str, platform: str) -> dict[str, pd.DataFrame]:
             # Carnosine is misspelled in ADNI2GO UPLC
             if f == "ADMCDUKEP180UPLCADNI2GO.csv":
                 dat = dat.rename(columns={"canosine": "Carnosine"})
+            # Convert metabolites to float64 dtypes
+            metabo_names = _get_metabo_col_names(dat, key)
+            dat[metabo_names] = dat.loc[:, metabo_names].astype("float64")
             platform_files[key] = dat
 
     return platform_files
@@ -80,7 +83,14 @@ def read_fasting_file(filepath: str) -> pd.Series:
     fasting_dat: pd.Series
         Series with fasting information.
     """
-    fasting_dat = pd.DataFrame(pd.read_csv(filepath, index_col="RID", na_values=-4))
+    fasting_dat = pd.DataFrame(
+        pd.read_csv(
+            filepath,
+            usecols=["RID", "VISCODE2", "BIFAST"],
+            index_col="RID",
+            na_values=-4,
+        )
+    )
     # Keep only information from baseline
     fasting_dat = fasting_dat.loc[fasting_dat.loc[:, "VISCODE2"] == "bl",]
     fasting_dat = fasting_dat.loc[:, "BIFAST"]
@@ -122,7 +132,6 @@ def read_lod_files(directory: str) -> dict[str, pd.DataFrame]:
         "4610 FIA p180 Data.xlsx",
     ]
     for i, key in enumerate(lod_files):
-        print(i, key)
         if key == "ADNI2GO-UPLC":
             dat = pd.read_excel(
                 io=filenames[i],
@@ -298,6 +307,6 @@ def _replace_bad_col_names(dat: pd.DataFrame) -> pd.DataFrame:
         Dataframe with replaced column names.
     """
     old_columns = dat.columns
-    new_columns = old_columns.str.replace(pat="-|:|\(|\)| ", repl=".", regex=True)
+    new_columns = old_columns.str.replace(pat=r"-|:|\(|\)| ", repl=".", regex=True)
     dat.columns = new_columns
     return dat

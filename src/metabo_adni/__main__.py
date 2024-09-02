@@ -1,9 +1,9 @@
-import os
 import argparse
+import os
+from sys import platform
+
 from .data import load
-from .qc import metabolites
-from .qc import participants
-from .qc import transformations
+from .qc import metabolites, participants, transformations
 
 
 def main():
@@ -122,6 +122,8 @@ def main():
                               current directory.",
     )
     args = parser.parse_args()
+    if args.P == "nmr":
+        args.L = None
     files = load.read_files(args.D, args.P)
     files = metabolites.remove_missing(files, args.P, args.mmc)
     if args.P == "p180":

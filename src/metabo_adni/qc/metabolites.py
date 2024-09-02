@@ -1,5 +1,6 @@
 import pandas as pd
 import pingouin as pg
+
 from metabo_adni.data import load
 
 
@@ -194,7 +195,11 @@ def cross_plate_correction(
                 correct_rows = (dat["Plate.Bar.Code"] == plate_name) & (
                     dat.index < 99999
                 )
-                new_dat = dat.loc[correct_rows, metabo_names] / correction
+                new_dat = (
+                    dat_dict[key]
+                    .loc[correct_rows, metabo_names]
+                    .div(correction, axis="columns", level="label")
+                )
                 dat_dict[key].loc[correct_rows, metabo_names] = new_dat
         print("")
         return dat_dict

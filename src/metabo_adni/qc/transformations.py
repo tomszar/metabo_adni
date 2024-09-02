@@ -23,7 +23,7 @@ def imputation(
     dat_dict: dict[str, pd.DataFrame]
         Dictionary with dataframe name and dataframe to modify.
     platform: str
-        Metabolomics platform to process. Only done in the p180.
+        Metabolomics platform to process.
     lod_directory: Union[str, None]
         Path of the files containing the LOD information for the p180.
 
@@ -41,7 +41,10 @@ def imputation(
     for key in dat_dict:
         metabo_names = load._get_metabo_col_names(dat_dict[key], key)
         indices = load._get_data_indices(dat_dict[key], platform)
-        dat = dat_dict[key].loc[indices, list(metabo_names) + ["Plate.Bar.Code"]]
+        if platform == "p180":
+            dat = dat_dict[key].loc[indices, list(metabo_names) + ["Plate.Bar.Code"]]
+        else:
+            dat = dat_dict[key].loc[indices, metabo_names]
         mets_to_impute = dat.columns[dat.isna().any()]
         data_points_impute = dat.isna().sum().sum()
         total_mets_imputed.extend(mets_to_impute)
