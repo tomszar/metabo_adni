@@ -147,7 +147,7 @@ def log2(
         metabo_names = load._get_metabo_col_names(dat_dict[key], key)
         indices = load._get_data_indices(dat_dict[key], platform)
         dat = dat_dict[key].loc[indices, metabo_names]
-        log2_dat = np.log2(dat + 1)
+        log2_dat = np.log2(dat + 1 / 1000000)
         dat_dict[key].loc[indices, metabo_names] = log2_dat
     print("")
     return dat_dict
@@ -272,8 +272,8 @@ def _get_residuals(
     Y = new_dat.loc[:, outcomes.columns]
     residuals = Y.copy()
     X = new_dat.loc[:, predictors.columns]
-    # Remove meds with only zeros
-    keep_meds = X.mean() > 0
+    # Remove meds with less than 20 observations
+    keep_meds = X.sum() > 20
     X = X.loc[:, keep_meds]
     for y in Y:
         results = sm.OLS(exog=X, endog=Y[y]).fit()
