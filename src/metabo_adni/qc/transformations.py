@@ -57,14 +57,14 @@ def imputation(
             indices = dat.loc[dat[j].isna()].index
             if platform == "p180" and lod_directory is not None:
                 if key == "ADNI2GO-UPLC":
-                    dat_dict[key].loc[indices, j] = lod_files[key].loc[:, j]
+                    value = lod_files[key].loc[:, j]
+                    dat_dict[key].loc[indices, j] = value.item()
                 else:
                     barcode = pd.Series(dat.loc[indices, "Plate.Bar.Code"])
-                    for bar in barcode:
+                    for bar in barcode.unique():
                         met_lod = lod_files[key].loc[:, "Plate.Bar.Code"] == bar
-                        dat_dict[key].loc[indices, j] = (
-                            lod_files[key].loc[met_lod, j] / 2
-                        )
+                        value = lod_files[key].loc[met_lod, j] / 2
+                        dat_dict[key].loc[indices, j] = value.item()
             else:
                 half_min = dat.loc[:, j].min() / 2
                 dat_dict[key].loc[indices, j] = half_min
@@ -147,7 +147,7 @@ def log2(
         metabo_names = load._get_metabo_col_names(dat_dict[key], key)
         indices = load._get_data_indices(dat_dict[key], platform)
         dat = dat_dict[key].loc[indices, metabo_names]
-        log2_dat = np.log2(dat + 1)
+        log2_dat = np.log2(dat + 1 / 1000000)
         dat_dict[key].loc[indices, metabo_names] = log2_dat
     print("")
     return dat_dict
@@ -272,8 +272,8 @@ def _get_residuals(
     Y = new_dat.loc[:, outcomes.columns]
     residuals = Y.copy()
     X = new_dat.loc[:, predictors.columns]
-    # Remove meds with only zeros
-    keep_meds = X.mean() > 0
+    # Remove meds with less than 20 observations
+    keep_meds = X.sum() > 20
     X = X.loc[:, keep_meds]
     for y in Y:
         results = sm.OLS(exog=X, endog=Y[y]).fit()

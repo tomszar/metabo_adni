@@ -133,23 +133,19 @@ def read_lod_files(directory: str) -> dict[str, pd.DataFrame]:
     ]
     for i, key in enumerate(lod_files):
         if key == "ADNI2GO-UPLC":
-            dat = pd.read_excel(
-                io=filenames[i],
-                sheet_name=0,
-                header=0,
-                index_col=10,
-                skiprows=[0, 2],
-                nrows=1,
-            ).iloc[:, 10:]
+            last_row = 1
+        elif key == "ADNI2GO-FIA":
+            last_row = 12
         else:
-            dat = pd.read_excel(
-                io=filenames[i],
-                sheet_name=0,
-                header=0,
-                index_col=10,
-                skiprows=[0, 2],
-                nrows=11,
-            ).iloc[:, 10:]
+            last_row = 11
+        dat = pd.read_excel(
+            io=filenames[i],
+            sheet_name=0,
+            header=0,
+            index_col=10,
+            skiprows=[0, 2],
+            nrows=last_row,
+        ).iloc[:, 10:]
         # Metabolite names in lod don't match those in the data
         # Replace '-', ':', '(', ')' and ' ' with '.'
         dat = _replace_bad_col_names(dat)
@@ -158,10 +154,14 @@ def read_lod_files(directory: str) -> dict[str, pd.DataFrame]:
             dat.rename(columns={"Met.SO": "Met.So"}, inplace=True)
         # In LOD files, the bar code plate needs fixing,
         # except ADNI2GO-UPLC where it's only one
-        if "ADNI2GO-UPLC" != key:
+        if key != "ADNI2GO-UPLC":
             barcode = dat.index
+            if key == "ADNI1-UPLC":
+                pos = 3
+            else:
+                pos = 2
             barcode = [
-                l.replace("/", "-") for l in [x[2] for x in barcode.str.split(" ")]
+                l.replace("/", "-") for l in [x[pos] for x in barcode.str.split(" ")]
             ]
             dat["Plate.Bar.Code"] = barcode
             dat = dat.reset_index(drop=True)
@@ -181,16 +181,18 @@ def read_meds_file() -> pd.DataFrame:
     file = "ADMCPATIENTDRUGCLASSES_20170512.csv"
     file_exists = os.path.exists(file)
     if file_exists:
-        meds = pd.read_csv(file).set_index(["RID"])
+        meds = pd.read_csv(file, dtype=str).set_index(["RID"])
         # Keeping only baseline
         baseline = meds.loc[:, "VISCODE2"] == "bl"
         # Removing extra column and no longer needed columns
         meds.drop(["NA", "VISCODE2", "Phase"], axis="columns", inplace=True)
         meds = meds.loc[baseline, :]
         # Replacing not NA values
-        meds[meds.notna()] = 1
+        meds[meds.notna()] = "1"
         # Replacing NA values
-        meds = meds.replace(np.nan, 0)
+        meds = meds.replace(np.nan, "0")
+        meds = meds.astype(int)
+        meds.index = meds.index.astype(int)
     else:
         raise Exception("There is no medication file")
     return meds
