@@ -57,14 +57,14 @@ def imputation(
             indices = dat.loc[dat[j].isna()].index
             if platform == "p180" and lod_directory is not None:
                 if key == "ADNI2GO-UPLC":
-                    dat_dict[key].loc[indices, j] = lod_files[key].loc[:, j]
+                    value = lod_files[key].loc[:, j]
+                    dat_dict[key].loc[indices, j] = value.item()
                 else:
                     barcode = pd.Series(dat.loc[indices, "Plate.Bar.Code"])
-                    for bar in barcode:
+                    for bar in barcode.unique():
                         met_lod = lod_files[key].loc[:, "Plate.Bar.Code"] == bar
-                        dat_dict[key].loc[indices, j] = (
-                            lod_files[key].loc[met_lod, j] / 2
-                        )
+                        value = lod_files[key].loc[met_lod, j] / 2
+                        dat_dict[key].loc[indices, j] = value.item()
             else:
                 half_min = dat.loc[:, j].min() / 2
                 dat_dict[key].loc[indices, j] = half_min
