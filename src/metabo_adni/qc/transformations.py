@@ -209,7 +209,7 @@ def winsorize(
         metabo_names = load._get_metabo_col_names(dat_dict[key], key)
         indices = load._get_data_indices(dat_dict[key], platform)
         dat = dat_dict[key].loc[indices, metabo_names]
-        three_std = np.std(dat) * 3
+        three_std = np.std(dat, axis=0, ddof=1) * 3
         total_replacements = 0
         for i, std in enumerate(three_std):
             col = dat.columns[i]
